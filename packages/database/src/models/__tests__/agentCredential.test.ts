@@ -121,4 +121,37 @@ describe('AgentCredentialModel', () => {
     });
     expect(updated?.scopes).toEqual(['youtube.readonly']);
   });
+
+  it('supports separate credentials for different agents owned by the same user', async () => {
+    const sameUserAgentId = 'agent-credential-test-agent-id-3';
+    await serverDB.insert(agents).values({ id: sameUserAgentId, userId });
+
+    const model = new AgentCredentialModel(serverDB, userId);
+
+    await model.create({
+      accountLabel: 'Google Account A',
+      agentId,
+      authType: 'oauth',
+      credentials: { email: 'account-a@example.com', refreshToken: 'refresh-a' },
+      externalAccountId: 'google-sub-a',
+      provider: 'google',
+    });
+
+    await model.create({
+      accountLabel: 'Google Account B',
+      agentId: sameUserAgentId,
+      authType: 'oauth',
+      credentials: { email: 'account-b@example.com', refreshToken: 'refresh-b' },
+      externalAccountId: 'google-sub-b',
+      provider: 'google',
+    });
+
+    const firstAgentCredential = await model.findByAgentIdAndProvider(agentId, 'google');
+    const secondAgentCredential = await model.findByAgentIdAndProvider(sameUserAgentId, 'google');
+
+    expect(firstAgentCredential?.externalAccountId).toBe('google-sub-a');
+    expect(firstAgentCredential?.credentials).toMatchObject({ email: 'account-a@example.com' });
+    expect(secondAgentCredential?.externalAccountId).toBe('google-sub-b');
+    expect(secondAgentCredential?.credentials).toMatchObject({ email: 'account-b@example.com' });
+  });
 });
