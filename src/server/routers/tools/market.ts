@@ -1,17 +1,12 @@
-import { type CodeInterpreterToolName } from '@lobehub/market-sdk';
 import { TRPCError } from '@trpc/server';
 import debug from 'debug';
-import { sha256 } from 'js-sha256';
 import { z } from 'zod';
 
-import { AgentSkillModel } from '@/database/models/agentSkill';
-import { FileModel } from '@/database/models/file';
 import { type ToolCallContent } from '@/libs/mcp';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { marketUserInfo, serverDatabase, telemetry } from '@/libs/trpc/lambda/middleware';
 import { marketSDK, requireMarketAuth } from '@/libs/trpc/lambda/middleware/marketSDK';
 import { isTrustedClientEnabled } from '@/libs/trusted-client';
-import { FileS3 } from '@/server/modules/S3';
 import { DiscoverService } from '@/server/services/discover';
 import { FileService } from '@/server/services/file';
 import { MarketService } from '@/server/services/market';
@@ -19,6 +14,7 @@ import {
   contentBlocksToString,
   processContentBlocks,
 } from '@/server/services/mcp/contentProcessor';
+import { PersistentSandboxService } from '@/server/services/sandbox/persistentSandbox';
 
 import { scheduleToolCallReport } from './_helpers';
 
@@ -86,6 +82,7 @@ const metaSchema = z
 
 // Schema for sandbox tool execution request
 const execInSandboxSchema = z.object({
+  agentId: z.string().optional(),
   params: z.record(z.any()),
   toolName: z.string(),
   topicId: z.string(),
@@ -94,6 +91,7 @@ const execInSandboxSchema = z.object({
 
 // Schema for export and upload file (combined operation)
 const exportAndUploadFileSchema = z.object({
+  agentId: z.string().optional(),
   filename: z.string(),
   path: z.string(),
   topicId: z.string(),
@@ -145,93 +143,19 @@ const execInSandboxHandler = async ({
 }): Promise<CallToolResult> => {
   const { toolName, params, topicId } = input;
   const userId = input?.userId || ctx.userId;
+  const agentId = input.agentId || topicId;
 
   log('execInSandbox: tool=%s, topicId=%s', toolName, topicId);
 
   try {
-    let enhancedParams = params;
+    const sandboxService = new PersistentSandboxService({
+      agentId,
+      fileService: ctx.fileService,
+      topicId,
+      userId,
+    });
 
-    // Preprocess lh commands: rewrite to npx @lobehub/cli + inject auth env vars
-    if ((toolName === 'execScript' || toolName === 'runCommand') && params.command) {
-      const { preprocessLhCommand } =
-        await import('@/server/services/toolExecution/preprocessLhCommand');
-      const lhResult = await preprocessLhCommand(params.command, userId);
-
-      if (lhResult.error) {
-        return {
-          error: { message: lhResult.error, name: 'AuthError' },
-          result: null,
-          sessionExpiredAndRecreated: false,
-          success: false,
-        };
-      }
-
-      if (lhResult.skipSkillLookup) {
-        enhancedParams = { ...params, command: lhResult.command };
-      }
-    }
-
-    // For execScript tool, look up skill zipUrls from activatedSkills
-    if (toolName === 'execScript' && enhancedParams.activatedSkills?.length) {
-      const agentSkillModel = new AgentSkillModel(ctx.serverDB, userId);
-      const fileModel = new FileModel(ctx.serverDB, userId);
-
-      // Resolve zipUrls for all activated skills
-      const skillZipUrls: Record<string, string> = {};
-
-      for (const activatedSkill of enhancedParams.activatedSkills) {
-        if (!activatedSkill.name) continue;
-
-        const skill = await agentSkillModel.findByName(activatedSkill.name);
-        if (!skill?.zipFileHash) continue;
-
-        const fileInfo = await fileModel.checkHash(skill.zipFileHash);
-        if (!fileInfo.isExist || !fileInfo.url) continue;
-
-        const fullUrl = await ctx.fileService.getFullFileUrl(fileInfo.url);
-        if (fullUrl) {
-          skillZipUrls[activatedSkill.name] = fullUrl;
-          log('Resolved zipUrl for skill %s: %s', activatedSkill.name, fullUrl);
-        }
-      }
-
-      // Add skillZipUrls to params if any were resolved
-      if (Object.keys(skillZipUrls).length > 0) {
-        enhancedParams = {
-          ...enhancedParams,
-          skillZipUrls,
-        };
-        log('Added skillZipUrls to execScript params: %O', Object.keys(skillZipUrls));
-      }
-    }
-
-    const market = ctx.marketService.market;
-
-    const response = await market.plugins.runBuildInTool(
-      toolName as CodeInterpreterToolName,
-      enhancedParams as any,
-      { topicId, userId },
-    );
-
-    log('execInSandbox response for %s: %O', toolName, response);
-
-    if (!response.success) {
-      return {
-        error: {
-          message: response.error?.message || 'Unknown error',
-          name: response.error?.code,
-        },
-        result: null,
-        sessionExpiredAndRecreated: false,
-        success: false,
-      };
-    }
-
-    return {
-      result: response.data?.result,
-      sessionExpiredAndRecreated: response.data?.sessionExpiredAndRecreated || false,
-      success: true,
-    };
+    return sandboxService.callTool(toolName, params);
   } catch (error) {
     log('execInSandbox error for %s: %O', toolName, error);
 
@@ -602,80 +526,19 @@ export const marketRouter = router({
     .input(exportAndUploadFileSchema)
     .mutation(async ({ input, ctx }) => {
       const { path, filename, topicId } = input;
+      const agentId = input.agentId || topicId;
 
       log('Exporting and uploading file: %s from path: %s in topic: %s', filename, path, topicId);
 
       try {
-        const s3 = new FileS3();
-
-        // Use date-based sharding for privacy compliance (GDPR, CCPA)
-        const today = new Date().toISOString().split('T')[0];
-
-        // Generate a unique key for the exported file
-        const key = `code-interpreter-exports/${today}/${topicId}/${filename}`;
-
-        // Step 1: Generate pre-signed upload URL
-        const uploadUrl = await s3.createPreSignedUrl(key);
-        log('Generated upload URL for key: %s', key);
-
-        // Step 2: Use MarketService from ctx
-        const market = ctx.marketService.market;
-
-        // Step 3: Call sandbox's exportFile tool with the upload URL
-        const response = await market.plugins.runBuildInTool(
-          'exportFile',
-          { path, uploadUrl },
-          { topicId, userId: ctx.userId },
-        );
-
-        log('Sandbox exportFile response: %O', response);
-
-        if (!response.success) {
-          return {
-            error: { message: response.error?.message || 'Failed to export file from sandbox' },
-            filename,
-            success: false,
-          } as ExportAndUploadFileResult;
-        }
-
-        const result = response.data?.result;
-        const uploadSuccess = result?.success !== false;
-
-        if (!uploadSuccess) {
-          return {
-            error: { message: result?.error || 'Failed to upload file from sandbox' },
-            filename,
-            success: false,
-          } as ExportAndUploadFileResult;
-        }
-
-        // Step 4: Get file metadata from S3 to verify upload and get actual size
-        const metadata = await s3.getFileMetadata(key);
-        const fileSize = metadata.contentLength;
-        const mimeType = metadata.contentType || result?.mimeType || 'application/octet-stream';
-
-        // Step 5: Create persistent file record using FileService
-        // Generate a simple hash from the key (since we don't have the actual file content)
-        const fileHash = sha256(key + Date.now().toString());
-
-        const { fileId, url } = await ctx.fileService.createFileRecord({
-          fileHash,
-          fileType: mimeType,
-          name: filename,
-          size: fileSize,
-          url: key, // Store S3 key
+        const sandboxService = new PersistentSandboxService({
+          agentId,
+          fileService: ctx.fileService,
+          topicId,
+          userId: ctx.userId,
         });
 
-        log('Created file record: fileId=%s, url=%s', fileId, url);
-
-        return {
-          fileId,
-          filename,
-          mimeType,
-          size: fileSize,
-          success: true,
-          url, // This is the permanent /f/:id URL
-        } as ExportAndUploadFileResult;
+        return sandboxService.exportAndUploadFile(path, filename);
       } catch (error) {
         log('Error in exportAndUploadFile: %O', error);
 

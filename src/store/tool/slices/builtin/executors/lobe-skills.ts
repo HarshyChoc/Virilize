@@ -12,6 +12,7 @@ import { filterBuiltinSkills } from '@/helpers/skillFilters';
 import { cloudSandboxService } from '@/services/cloudSandbox';
 import { agentSkillService } from '@/services/skill';
 import { useChatStore } from '@/store/chat';
+import { useSessionStore } from '@/store/session';
 
 // Create runtime with client-side service
 const runtime = new SkillsExecutionRuntime({
@@ -24,6 +25,7 @@ const runtime = new SkillsExecutionRuntime({
       // Server will resolve zipUrls for all activatedSkills
       const chatState = useChatStore.getState();
       const topicId = chatState.activeTopicId || 'default';
+      const agentId = useSessionStore.getState().activeAgentId;
 
       try {
         // Call cloud sandbox execScript tool
@@ -34,7 +36,7 @@ const runtime = new SkillsExecutionRuntime({
             command,
             description,
           },
-          { topicId },
+          { agentId, topicId },
         );
 
         if (!result.success) {
@@ -69,10 +71,16 @@ const runtime = new SkillsExecutionRuntime({
       // Get current session context
       const chatState = useChatStore.getState();
       const topicId = chatState.activeTopicId || 'default';
+      const agentId = useSessionStore.getState().activeAgentId;
 
       try {
         // Call cloud sandbox exportAndUploadFile
-        const result = await cloudSandboxService.exportAndUploadFile(path, filename, topicId);
+        const result = await cloudSandboxService.exportAndUploadFile(
+          path,
+          filename,
+          topicId,
+          agentId,
+        );
 
         return {
           fileId: result.fileId,
@@ -98,6 +106,7 @@ const runtime = new SkillsExecutionRuntime({
       // Get current session context for sandbox isolation
       const chatState = useChatStore.getState();
       const topicId = chatState.activeTopicId || 'default';
+      const agentId = useSessionStore.getState().activeAgentId;
 
       try {
         // Call cloud sandbox via TRPC
@@ -109,7 +118,7 @@ const runtime = new SkillsExecutionRuntime({
             description: `Execute skill command: ${command.slice(0, 100)}${command.length > 100 ? '...' : ''}`,
             timeout,
           },
-          { topicId },
+          { agentId, topicId },
         );
 
         if (!result.success) {

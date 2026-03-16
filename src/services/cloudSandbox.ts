@@ -16,9 +16,10 @@ class CloudSandboxService {
   async callTool(
     toolName: string,
     params: Record<string, any>,
-    context: { topicId: string; userId?: string },
+    context: { agentId?: string; topicId: string; userId?: string },
   ): Promise<CallToolResult> {
     const input: ExecInSandboxInput = {
+      agentId: context.agentId,
       params,
       toolName,
       topicId: context.topicId,
@@ -40,8 +41,10 @@ class CloudSandboxService {
     path: string,
     filename: string,
     topicId: string,
+    agentId?: string,
   ): Promise<ExportAndUploadFileResult> {
     const input: ExportAndUploadFileInput = {
+      agentId,
       filename,
       path,
       topicId,
