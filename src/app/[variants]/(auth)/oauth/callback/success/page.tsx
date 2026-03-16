@@ -14,6 +14,34 @@ const SuccessPage = memo(() => {
   useEffect(() => {
     // Check if this is a LobeHub Skill OAuth callback
     const provider = searchParams.get('provider');
+    const agentOAuth = searchParams.get('agent_oauth') === '1';
+    const agentId = searchParams.get('agentId');
+
+    if (provider && agentOAuth && agentId && window.opener) {
+      window.opener.postMessage(
+        {
+          agentId,
+          provider,
+          type: 'AGENT_OAUTH_SUCCESS',
+        },
+        window.location.origin,
+      );
+
+      let timeLeft = 3;
+      setCountdown(timeLeft);
+
+      const countdownTimer = setInterval(() => {
+        timeLeft -= 1;
+        setCountdown(timeLeft);
+
+        if (timeLeft <= 0) {
+          clearInterval(countdownTimer);
+          window.close();
+        }
+      }, 1000);
+
+      return () => clearInterval(countdownTimer);
+    }
 
     if (provider && window.opener) {
       // Notify parent window about successful OAuth

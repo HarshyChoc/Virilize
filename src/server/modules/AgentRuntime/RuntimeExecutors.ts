@@ -26,6 +26,7 @@ import { type LobeChatDatabase } from '@/database/type';
 import { serverMessagesEngine } from '@/server/modules/Mecha/ContextEngineering';
 import { type EvalContext } from '@/server/modules/Mecha/ContextEngineering/types';
 import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
+import { AgentCredentialService } from '@/server/services/agentCredential';
 import { type ToolExecutionService } from '@/server/services/toolExecution';
 
 import { type IStreamEventManager } from './types';
@@ -620,8 +621,18 @@ export const createRuntimeExecutors = (
 
       // Execute tool using ToolExecutionService
       log(`[${operationLogId}] Executing tool ${toolName} ...`);
+      const agentId = state.metadata?.agentId;
+      const agentCredentials =
+        agentId && ctx.userId
+          ? await new AgentCredentialService(ctx.serverDB, ctx.userId).getUsableCredentialMap(
+              agentId,
+            )
+          : undefined;
+
       const executionResult = await toolExecutionService.executeTool(chatToolPayload, {
         activeDeviceId: state.metadata?.activeDeviceId,
+        agentCredentials,
+        agentId,
         memoryToolPermission: agentConfig?.chatConfig?.memory?.toolPermission,
         serverDB: ctx.serverDB,
         toolManifestMap: effectiveManifestMap,
@@ -837,9 +848,17 @@ export const createRuntimeExecutors = (
           };
 
           const batchAgentConfig = state.metadata?.agentConfig;
+          const batchAgentId = state.metadata?.agentId;
 
           const executionResult = await toolExecutionService.executeTool(chatToolPayload, {
             activeDeviceId: state.metadata?.activeDeviceId,
+            agentCredentials:
+              batchAgentId && ctx.userId
+                ? await new AgentCredentialService(ctx.serverDB, ctx.userId).getUsableCredentialMap(
+                    batchAgentId,
+                  )
+                : undefined,
+            agentId: batchAgentId,
             memoryToolPermission: batchAgentConfig?.chatConfig?.memory?.toolPermission,
             serverDB: ctx.serverDB,
             toolManifestMap: batchManifestMap,

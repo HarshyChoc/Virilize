@@ -15,6 +15,7 @@ import { agentCronJobRouter } from './agentCronJob';
 import { agentEvalRouter } from './agentEval';
 import { agentEvalExternalRouter } from './agentEvalExternal';
 import { agentGroupRouter } from './agentGroup';
+import { agentOAuthRouter } from './agentOAuth';
 import { agentSkillsRouter } from './agentSkills';
 import { aiAgentRouter } from './aiAgent';
 import { aiChatRouter } from './aiChat';
@@ -60,6 +61,7 @@ export const lambdaRouter = router({
   agent: agentRouter,
   agentBotProvider: agentBotProviderRouter,
   agentCredential: agentCredentialRouter,
+  agentOAuth: agentOAuthRouter,
   agentCronJob: agentCronJobRouter,
   agentEval: agentEvalRouter,
   agentEvalExternal: agentEvalExternalRouter,

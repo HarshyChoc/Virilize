@@ -2,9 +2,13 @@ import { type LobeToolManifest } from '@lobechat/context-engine';
 import { type LobeChatDatabase } from '@lobechat/database';
 import { type ChatToolPayload } from '@lobechat/types';
 
+import { type DecryptedAgentCredential } from '@/database/models/agentCredential';
+
 export interface ToolExecutionContext {
   /** Target device ID for device proxy tool calls */
   activeDeviceId?: string;
+  agentCredentials?: Record<string, DecryptedAgentCredential | undefined>;
+  agentId?: string;
   /** Memory tool permission from agent chat config */
   memoryToolPermission?: 'read-only' | 'read-write';
   /** Server database for LobeHub Skills execution */

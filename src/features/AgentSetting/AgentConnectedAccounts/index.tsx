@@ -4,12 +4,13 @@ import { Empty, Flexbox, Icon, Tag } from '@lobehub/ui';
 import { App, Button, Skeleton, Typography } from 'antd';
 import { createStyles } from 'antd-style';
 import { BadgeCheckIcon, ExternalLinkIcon, Link2Icon, UnplugIcon } from 'lucide-react';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useSWR from 'swr';
 
 import { type DecryptedAgentCredential } from '@/database/models/agentCredential';
 import { agentCredentialService } from '@/services/agentCredential';
+import { agentOAuthService } from '@/services/agentOAuth';
 import { useAgentStore } from '@/store/agent';
 import { builtinAgentSelectors } from '@/store/agent/selectors';
 
@@ -63,6 +64,8 @@ const PROVIDERS: ProviderDefinition[] = [
   },
 ] as const;
 
+const GOOGLE_PROVIDER = 'google';
+
 const useStyles = createStyles(({ css, token }) => ({
   card: css`
     gap: 16px;
@@ -96,6 +99,7 @@ const AgentConnectedAccounts = memo(() => {
   const { t } = useTranslation('setting');
   const agentId = useAgentStore((s) => s.activeAgentId);
   const isInbox = useAgentStore(builtinAgentSelectors.isInboxAgent);
+  const [connectingProvider, setConnectingProvider] = useState<string | null>(null);
 
   const {
     data: credentials = [],
@@ -108,6 +112,15 @@ const AgentConnectedAccounts = memo(() => {
       onError: (error) => {
         console.error('Failed to load agent credentials:', error);
         message.error(t('agentConnections.loadError'));
+      },
+    },
+  );
+  const { data: oauthProviders } = useSWR(
+    !isInbox ? 'agent-oauth-providers' : null,
+    () => agentOAuthService.getProviders(),
+    {
+      onError: (error) => {
+        console.error('Failed to load agent OAuth providers:', error);
       },
     },
   );
@@ -161,6 +174,45 @@ const AgentConnectedAccounts = memo(() => {
     [message, modal, mutate, t],
   );
 
+  const handleGoogleConnect = useCallback(async () => {
+    if (!agentId) return;
+
+    setConnectingProvider(GOOGLE_PROVIDER);
+    try {
+      const { authorizationUrl } = await agentOAuthService.initiateOAuth({
+        agentId,
+        provider: GOOGLE_PROVIDER,
+      });
+
+      const popup = window.open(authorizationUrl, '_blank', 'width=640,height=720');
+      if (!popup) {
+        message.error(t('agentConnections.popupBlocked'));
+        setConnectingProvider(null);
+      }
+    } catch (error) {
+      console.error('Failed to initiate Google OAuth:', error);
+      message.error(t('agentConnections.connectError'));
+      setConnectingProvider(null);
+    }
+  }, [agentId, message, t]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type !== 'AGENT_OAUTH_SUCCESS') return;
+      if (event.data?.provider !== GOOGLE_PROVIDER) return;
+      if (event.data?.agentId !== agentId) return;
+
+      setConnectingProvider(null);
+      message.success(t('agentConnections.connectSuccess'));
+      void mutate();
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [agentId, message, mutate, t]);
+
   if (isInbox) {
     return (
       <Empty
@@ -196,6 +248,8 @@ const AgentConnectedAccounts = memo(() => {
 
       {providerCards.map(({ authType, credential, descriptionKey, provider, title }) => {
         const isConnected = !!credential;
+        const isGoogle = provider === GOOGLE_PROVIDER;
+        const isGoogleEnabled = !!oauthProviders?.google;
         const modeLabel =
           authType === 'sandbox_session'
             ? t('agentConnections.authType.sandbox_session')
@@ -261,6 +315,17 @@ const AgentConnectedAccounts = memo(() => {
                   onClick={() => handleDisconnect(credential)}
                 >
                   {t('agentConnections.disconnect')}
+                </Button>
+              ) : isGoogle ? (
+                <Button
+                  disabled={!isGoogleEnabled}
+                  icon={<Icon icon={ExternalLinkIcon} />}
+                  loading={connectingProvider === GOOGLE_PROVIDER}
+                  onClick={handleGoogleConnect}
+                >
+                  {isGoogleEnabled
+                    ? t('agentConnections.connect')
+                    : t('agentConnections.googleNotConfigured')}
                 </Button>
               ) : (
                 <Button disabled icon={<Icon icon={ExternalLinkIcon} />}>

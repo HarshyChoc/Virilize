@@ -59,6 +59,24 @@ export class AgentCredentialModel {
     return Promise.all(results.map((item) => this.decryptRow(item)));
   };
 
+  findByAgentIdAndProvider = async (agentId: string, provider: string) => {
+    const [result] = await this.db
+      .select()
+      .from(agentCredentials)
+      .where(
+        and(
+          eq(agentCredentials.agentId, agentId),
+          eq(agentCredentials.provider, provider),
+          eq(agentCredentials.userId, this.userId),
+        ),
+      )
+      .limit(1);
+
+    if (!result) return null;
+
+    return this.decryptRow(result);
+  };
+
   findById = async (id: string) => {
     const [result] = await this.db
       .select()

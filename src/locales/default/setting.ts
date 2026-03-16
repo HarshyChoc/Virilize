@@ -187,6 +187,9 @@ export default {
   'agentConnections.authType.oauth': 'OAuth',
   'agentConnections.authType.sandbox_session': 'Browser Session',
   'agentConnections.comingSoon': 'Coming soon',
+  'agentConnections.connect': 'Connect',
+  'agentConnections.connectError': 'Failed to start OAuth connection',
+  'agentConnections.connectSuccess': 'Account connected',
   'agentConnections.connected': 'Connected',
   'agentConnections.connectedDescription':
     'This agent already has account credentials stored and can reuse them in future integrations.',
@@ -207,6 +210,7 @@ export default {
     'Connected accounts are designed for custom agents. The inbox assistant does not own provider credentials.',
   'agentConnections.inboxTitle': 'Inbox does not use connected accounts',
   'agentConnections.loadError': 'Failed to load connected accounts',
+  'agentConnections.googleNotConfigured': 'Google OAuth not configured',
   'agentConnections.pending.oauth':
     'OAuth connection flow is the next integration step for this provider.',
   'agentConnections.pending.sandbox':
@@ -215,6 +219,7 @@ export default {
     'Planned as a first-party OAuth connection owned by this agent.',
   'agentConnections.providers.sandboxDescription':
     'Planned as a browser login captured and reused from the agent sandbox.',
+  'agentConnections.popupBlocked': 'Popup was blocked. Please allow popups and try again.',
   'agentConnections.scopeCount': 'Scopes: {{count}}',
   'agentConnections.title': 'Connected Accounts',
   'analytics.telemetry.desc': 'Help us improve {{appName}} with anonymous usage data',
