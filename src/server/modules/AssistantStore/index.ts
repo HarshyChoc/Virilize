@@ -8,25 +8,27 @@ import { normalizeLocale } from '@/locales/resources';
 import { CacheRevalidate, CacheTag } from '@/types/discover';
 
 export class AssistantStore {
-  private readonly baseUrl: string;
+  private readonly baseUrl?: string;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || appEnv.AGENTS_INDEX_URL;
+    this.baseUrl = baseUrl ?? appEnv.AGENTS_INDEX_URL;
   }
 
   private getAgentIndexUrl = (lang: Locales = DEFAULT_LANG) => {
-    if (isLocaleNotSupport(lang)) return this.baseUrl;
+    if (isLocaleNotSupport(lang)) return this.baseUrl!;
 
-    return urlJoin(this.baseUrl, `index.${normalizeLocale(lang)}.json`);
+    return urlJoin(this.baseUrl!, `index.${normalizeLocale(lang)}.json`);
   };
 
   getAgentUrl = (identifier: string, lang: Locales = DEFAULT_LANG) => {
-    if (isLocaleNotSupport(lang)) return urlJoin(this.baseUrl, `${identifier}.json`);
+    if (isLocaleNotSupport(lang)) return urlJoin(this.baseUrl!, `${identifier}.json`);
 
-    return urlJoin(this.baseUrl, `${identifier}.${normalizeLocale(lang)}.json`);
+    return urlJoin(this.baseUrl!, `${identifier}.${normalizeLocale(lang)}.json`);
   };
 
   getAgentIndex = async (locale: Locales = DEFAULT_LANG): Promise<any[]> => {
+    if (!this.baseUrl) return [];
+
     let res: Response;
     try {
       res = await fetch(this.getAgentIndexUrl(locale as any), {
@@ -86,6 +88,8 @@ export class AssistantStore {
   };
 
   getAgent = async (identifier: string, lang: Locales = DEFAULT_LANG): Promise<any> => {
+    if (!this.baseUrl) return;
+
     let res = await fetch(this.getAgentUrl(identifier, lang), {
       cache: 'force-cache',
       next: {

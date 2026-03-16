@@ -1,5 +1,6 @@
 'use client';
 
+import { BRANDING_NAME } from '@lobechat/business-const';
 import isEqual from 'fast-deep-equal';
 import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +40,7 @@ export const BuiltinAgentSkillDetailProvider = ({
   });
 
   const value: DetailContextValue = {
-    author: 'LobeHub',
+    author: BRANDING_NAME,
     authorUrl: 'https://lobehub.com',
     config: null as any,
     description: skill.description,

@@ -1,13 +1,15 @@
+import { BRANDING_NAME } from '@lobechat/business-const';
+
 import { type ToolStoreState } from '../../initialState';
 import { type LobehubSkillServer } from './types';
 import { LobehubSkillStatus } from './types';
 
 /**
- * LobeHub Skill Store Selectors
+ * Branded skill store selectors
  */
 export const lobehubSkillStoreSelectors = {
   /**
-   * Get all LobeHub Skill server identifiers as a set
+   * Get all branded skill server identifiers as a set
    */
   getAllServerIdentifiers: (s: ToolStoreState): Set<string> => {
     const servers = s.lobehubSkillServers || [];
@@ -43,12 +45,12 @@ export const lobehubSkillStoreSelectors = {
     s.lobehubSkillServers?.find((server) => server.identifier === identifier),
 
   /**
-   * Get all LobeHub Skill servers
+   * Get all branded skill servers
    */
   getServers: (s: ToolStoreState): LobehubSkillServer[] => s.lobehubSkillServers || [],
 
   /**
-   * Check if the given identifier is a LobeHub Skill server
+   * Check if the given identifier is a branded skill server
    * @param identifier - Provider identifier (e.g., 'linear')
    */
   isLobehubSkillServer:
@@ -74,8 +76,8 @@ export const lobehubSkillStoreSelectors = {
   },
 
   /**
-   * Get all LobeHub Skill tools as LobeTool format for agent use
-   * Converts LobeHub Skill tools into the format expected by ToolNameResolver
+   * Get all branded skill tools as LobeTool format for agent use
+   * Converts branded skill tools into the format expected by ToolNameResolver
    */
   lobehubSkillAsLobeTools: (s: ToolStoreState) => {
     const servers = s.lobehubSkillServers || [];
@@ -95,12 +97,12 @@ export const lobehubSkillStoreSelectors = {
           identifier: server.identifier,
           manifest: {
             api: apis,
-            author: 'LobeHub Market',
+            author: `${BRANDING_NAME} Market`,
             homepage: 'https://lobehub.com/market',
             identifier: server.identifier,
             meta: {
               avatar: server.icon || '🔗',
-              description: `LobeHub Skill: ${server.name}`,
+              description: `${BRANDING_NAME} Skill: ${server.name}`,
               tags: ['lobehub-skill', server.identifier],
               title: server.name,
             },
@@ -116,7 +118,7 @@ export const lobehubSkillStoreSelectors = {
   },
 
   /**
-   * Get metadata list for all connected LobeHub Skill servers
+   * Get metadata list for all connected branded skill servers
    * Used by toolSelectors.metaList for unified tool metadata resolution
    */
   metaList: (s: ToolStoreState) => {
@@ -128,7 +130,7 @@ export const lobehubSkillStoreSelectors = {
         identifier: server.identifier,
         meta: {
           avatar: server.icon || '🔗',
-          description: `LobeHub Skill: ${server.name}`,
+          description: `${BRANDING_NAME} Skill: ${server.name}`,
           title: server.name,
         },
       }));

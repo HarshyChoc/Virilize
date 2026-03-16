@@ -25,15 +25,90 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
 
-  opacity: 0.6;
   color: var(--brand-text-color);
 }
 
-.brand :global(.lobe-brand-loading) {
-  display: block;
-  color: inherit;
+.wordmark {
+  position: relative;
+
+  display: inline-flex;
+  gap: 0.02em;
+
+  font-size: clamp(52px, 8vw, 84px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  color: var(--brand-text-color);
+
+  animation: wordmarkPulse 2.4s ease-in-out infinite;
+}
+
+.wordmark::after {
+  content: attr(data-text);
+
+  position: absolute;
+  inset: 0;
+
+  color: transparent;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  animation: shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.letter {
+  display: inline-block;
+  transform-origin: 50% 65%;
+  animation: letterRise 1.4s ease-out both;
+}
+
+@keyframes letterRise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+    filter: blur(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 140% 0;
+  }
+
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+@keyframes wordmarkPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.98;
+  }
+
+  50% {
+    transform: scale(1.015);
+    opacity: 1;
+  }
 }
 
 .debug {

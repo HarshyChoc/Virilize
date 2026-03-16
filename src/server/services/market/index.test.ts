@@ -64,6 +64,12 @@ vi.mock('@/libs/trusted-client', () => ({
   getTrustedClientTokenForSession: vi.fn(),
 }));
 
+vi.mock('@/envs/app', () => ({
+  appEnv: {
+    MARKET_BASE_URL: 'https://market.lobehub.com',
+  },
+}));
+
 vi.mock('debug', () => ({
   default: vi.fn(() => vi.fn()),
 }));

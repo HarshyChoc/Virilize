@@ -176,12 +176,47 @@ export default {
   'agentSkillModal.url.urlPlaceholder': 'https://example.com/path/to/SKILL.md',
   'agentSkillTag': 'Agent Skill',
   'agentTab.chat': 'Chat Preferences',
+  'agentTab.connections': 'Connected Accounts',
   'agentTab.meta': 'Agent info',
   'agentTab.modal': 'Model Settings',
   'agentTab.opening': 'Opening Settings',
   'agentTab.plugin': 'Skill Settings',
   'agentTab.prompt': 'Agent Profile',
   'agentTab.tts': 'Voice Service',
+  'agentConnections.accountLabel': 'Account: {{label}}',
+  'agentConnections.authType.oauth': 'OAuth',
+  'agentConnections.authType.sandbox_session': 'Browser Session',
+  'agentConnections.comingSoon': 'Coming soon',
+  'agentConnections.connected': 'Connected',
+  'agentConnections.connectedDescription':
+    'This agent already has account credentials stored and can reuse them in future integrations.',
+  'agentConnections.description':
+    'This is the agent-scoped foundation for Google, social, and sandbox-backed account access. Connect flows land next; this tab now owns the data seam.',
+  'agentConnections.disconnect': 'Disconnect',
+  'agentConnections.disconnectConfirm.description':
+    'Disconnect {{provider}} from this agent? Any future tools using this account will need to reconnect.',
+  'agentConnections.disconnectConfirm.title': 'Disconnect account',
+  'agentConnections.disconnectError': 'Failed to disconnect account',
+  'agentConnections.disconnectSuccess': 'Account disconnected',
+  'agentConnections.empty.description':
+    'No accounts are connected yet. OAuth and sandbox login flows will plug into this tab next.',
+  'agentConnections.empty.title': 'No connected accounts yet',
+  'agentConnections.footer':
+    'Next step: wire provider-specific OAuth and sandbox login flows into this tab, then pass credentials into tool execution per agent.',
+  'agentConnections.inboxDescription':
+    'Connected accounts are designed for custom agents. The inbox assistant does not own provider credentials.',
+  'agentConnections.inboxTitle': 'Inbox does not use connected accounts',
+  'agentConnections.loadError': 'Failed to load connected accounts',
+  'agentConnections.pending.oauth':
+    'OAuth connection flow is the next integration step for this provider.',
+  'agentConnections.pending.sandbox':
+    'This provider will use a persistent browser session inside the agent sandbox.',
+  'agentConnections.providers.oauthDescription':
+    'Planned as a first-party OAuth connection owned by this agent.',
+  'agentConnections.providers.sandboxDescription':
+    'Planned as a browser login captured and reused from the agent sandbox.',
+  'agentConnections.scopeCount': 'Scopes: {{count}}',
+  'agentConnections.title': 'Connected Accounts',
   'analytics.telemetry.desc': 'Help us improve {{appName}} with anonymous usage data',
   'analytics.telemetry.title': 'Send Anonymous Usage Data',
   'analytics.title': 'Analytics',
@@ -358,7 +393,7 @@ export default {
   'memory.effort.medium': 'Medium — Balanced behavior',
   'memory.effort.title': 'Aggressiveness',
   'memory.enabled.desc':
-    'Allow LobeHub to extract preferences and info from conversations and use them later. You can view, edit, or clear memory anytime.',
+    'Allow Virilize to extract preferences and info from conversations and use them later. You can view, edit, or clear memory anytime.',
   'memory.enabled.title': 'Enable Memory',
   'memory.title': 'Memory Settings',
   'message.success': 'Update successful',
@@ -701,7 +736,7 @@ export default {
   'skillStore.search': 'Search skills by name or keyword, press Enter to search…',
   'skillStore.tabs.community': 'Community',
   'skillStore.tabs.custom': 'Custom',
-  'skillStore.tabs.lobehub': 'LobeHub',
+  'skillStore.tabs.lobehub': 'Virilize',
   'skillStore.title': 'Skill Store',
   'skillStore.wantMore.action': 'Submit a request →',
   'skillStore.wantMore.feedback.message': `## Skill Name
@@ -1075,7 +1110,7 @@ When I am ___, I need ___
   'tools.lobehubSkill.disconnected': 'Disconnected',
 
   'tools.lobehubSkill.error': 'Error',
-  // LobeHub Skill Providers i18n
+  // Virilize Skill Providers i18n
   'tools.lobehubSkill.providers.linear.description':
     'Linear is a modern issue tracking and project management tool designed for high-performance teams to build better software faster',
   'tools.lobehubSkill.providers.linear.readme':

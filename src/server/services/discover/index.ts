@@ -82,6 +82,7 @@ export interface DiscoverServiceOptions {
 
 export class DiscoverService {
   assistantStore = new AssistantStore();
+  private readonly marketService: MarketService;
   pluginStore = new PluginStore();
   market: MarketSDK;
 
@@ -89,8 +90,8 @@ export class DiscoverService {
     const { accessToken, userInfo } = options;
 
     // Use MarketService to initialize MarketSDK
-    const marketService = new MarketService({ accessToken, userInfo });
-    this.market = marketService.market;
+    this.marketService = new MarketService({ accessToken, userInfo });
+    this.market = this.marketService.market;
 
     log(
       'DiscoverService initialized with market baseURL: %s, hasAuth: %s, userId: %s',
@@ -98,6 +99,10 @@ export class DiscoverService {
       !!(accessToken || userInfo),
       userInfo?.userId,
     );
+  }
+
+  private get isMarketEnabled() {
+    return this.marketService.enabled;
   }
 
   async registerClient({ userAgent }: { userAgent?: string }) {
@@ -520,6 +525,10 @@ export class DiscoverService {
     const { q, locale } = rest;
     const normalizedLocale = normalizeLocale(locale);
 
+    if (!this.isMarketEnabled) {
+      return [];
+    }
+
     try {
       // @ts-ignore
       const categories = await this.market.agents.getCategories({
@@ -548,6 +557,10 @@ export class DiscoverService {
 
     const { locale, identifier, version } = rest;
     const normalizedLocale = normalizeLocale(locale);
+
+    if (!this.isMarketEnabled) {
+      return;
+    }
 
     try {
       // @ts-ignore
@@ -641,6 +654,10 @@ export class DiscoverService {
       return this.legacyGetAssistantIdentifiers();
     }
 
+    if (!this.isMarketEnabled) {
+      return [];
+    }
+
     try {
       // @ts-ignore
       const identifiers = await this.market.agents.getPublishedIdentifiers();
@@ -678,6 +695,16 @@ export class DiscoverService {
     const shouldOmitCategory = [AssistantCategory.All, AssistantCategory.Discover].includes(
       category as AssistantCategory,
     );
+
+    if (!this.isMarketEnabled) {
+      return {
+        currentPage: page,
+        items: [],
+        pageSize,
+        totalCount: 0,
+        totalPages: 0,
+      };
+    }
 
     try {
       const normalizedLocale = normalizeLocale(locale);
@@ -782,6 +809,10 @@ export class DiscoverService {
 
   getMcpCategories = async (params: CategoryListQuery = {}): Promise<CategoryItem[]> => {
     log('getMcpCategories: params=%O', params);
+    if (!this.isMarketEnabled) {
+      return [];
+    }
+
     const { locale } = params;
     const normalizedLocale = normalizeLocale(locale);
     const result = await this.market.plugins.getCategories(
@@ -805,6 +836,10 @@ export class DiscoverService {
     version?: string;
   }): Promise<DiscoverMcpDetail> => {
     log('getMcpDetail: params=%O', params);
+    if (!this.isMarketEnabled) {
+      throw new Error('Marketplace is disabled');
+    }
+
     const { locale } = params;
     const normalizedLocale = normalizeLocale(locale);
     const mcp = await this.market.plugins.getPluginDetail(
@@ -834,6 +869,17 @@ export class DiscoverService {
 
   getMcpList = async (params: McpQueryParams = {}): Promise<McpListResponse> => {
     log('getMcpList: params=%O', params);
+    if (!this.isMarketEnabled) {
+      return {
+        categories: [],
+        currentPage: params.page || 1,
+        items: [],
+        pageSize: params.pageSize || 20,
+        totalCount: 0,
+        totalPages: 0,
+      };
+    }
+
     const { category, locale, sort } = params;
     const normalizedLocale = normalizeLocale(locale);
     const shouldOmitCategory = [McpCategory.All, McpCategory.Discover].includes(
@@ -860,6 +906,10 @@ export class DiscoverService {
 
   getMcpManifest = async (params: { identifier: string; locale?: string; version?: string }) => {
     log('getMcpManifest: params=%O', params);
+    if (!this.isMarketEnabled) {
+      return undefined;
+    }
+
     const { locale } = params;
     const normalizedLocale = normalizeLocale(locale);
     const result = await this.market.plugins.getPluginManifest(
@@ -884,6 +934,7 @@ export class DiscoverService {
    * report MCP plugin result marketplace
    */
   reportPluginInstallation = async (params: InstallReportRequest) => {
+    if (!this.isMarketEnabled) return;
     await this.market.plugins.reportInstallation(params);
   };
 
@@ -891,6 +942,7 @@ export class DiscoverService {
    * record Agent plugin event
    */
   createAgentEvent = async (params: AgentEventRequest) => {
+    if (!this.isMarketEnabled) return;
     await this.market.agents.createEvent(params);
   };
 
@@ -898,6 +950,7 @@ export class DiscoverService {
    * record MCP plugin event
    */
   createPluginEvent = async (params: PluginEventRequest) => {
+    if (!this.isMarketEnabled) return;
     await this.market.plugins.createEvent(params);
   };
 
@@ -905,6 +958,7 @@ export class DiscoverService {
    * report plugin call result to marketplace
    */
   reportCall = async (params: CallReportRequest) => {
+    if (!this.isMarketEnabled) return;
     await this.market.plugins.reportCall(params);
   };
 
@@ -914,6 +968,7 @@ export class DiscoverService {
    * Increase agent install count in marketplace
    */
   increaseAgentInstallCount = async (identifier: string) => {
+    if (!this.isMarketEnabled) return;
     await this.market.agents.increaseInstallCount(identifier);
   };
 
@@ -929,6 +984,16 @@ export class DiscoverService {
     log('getAgentsByPlugin: params=%O', params);
     const { locale, pluginId, page = 1, pageSize = 20 } = params;
     const normalizedLocale = normalizeLocale(locale);
+
+    if (!this.isMarketEnabled) {
+      return {
+        currentPage: page,
+        items: [],
+        pageSize,
+        totalCount: 0,
+        totalPages: 0,
+      };
+    }
 
     try {
       const data = await this.market.agents.getAgentsByPlugin({
@@ -1783,6 +1848,10 @@ export class DiscoverService {
     log('getUserInfo: params=%O', params);
     const { username, locale } = params;
 
+    if (!this.isMarketEnabled) {
+      return undefined;
+    }
+
     try {
       // Call Market SDK to get user info
       const response = (await this.market.user.getUserInfo(username, {
@@ -1992,6 +2061,10 @@ export class DiscoverService {
   // ============================== Group Agent Market Methods ==============================
 
   getGroupAgentCategories = async (params?: CategoryListQuery) => {
+    if (!this.isMarketEnabled) {
+      return { items: [] };
+    }
+
     try {
       // TODO: SDK method not yet available, using fallback
       const response = await (this.market.agentGroups as any).getAgentGroupCategories?.(params);
@@ -2007,6 +2080,10 @@ export class DiscoverService {
     locale?: string;
     version?: string;
   }) => {
+    if (!this.isMarketEnabled) {
+      throw new Error('Marketplace is disabled');
+    }
+
     try {
       const response = await this.market.agentGroups.getAgentGroupDetail(params.identifier, {
         locale: params.locale,
@@ -2020,6 +2097,10 @@ export class DiscoverService {
   };
 
   getGroupAgentIdentifiers = async () => {
+    if (!this.isMarketEnabled) {
+      return { identifiers: [] };
+    }
+
     try {
       // TODO: SDK method not yet available, using fallback
       const response = await (this.market.agentGroups as any).getAgentGroupIdentifiers?.();
@@ -2040,6 +2121,10 @@ export class DiscoverService {
     q?: string;
     sort?: 'createdAt' | 'updatedAt' | 'name' | 'recommended';
   }) => {
+    if (!this.isMarketEnabled) {
+      return { currentPage: 1, items: [], totalCount: 0, totalPages: 1 };
+    }
+
     try {
       const response = await this.market.agentGroups.getAgentGroupList({
         ...params,
@@ -2058,6 +2143,8 @@ export class DiscoverService {
     identifier: string;
     source?: string;
   }) => {
+    if (!this.isMarketEnabled) return;
+
     try {
       // TODO: SDK method not yet available
       await (this.market.agentGroups as any).createAgentGroupEvent?.(params);
@@ -2067,6 +2154,8 @@ export class DiscoverService {
   };
 
   increaseGroupAgentInstallCount = async (identifier: string) => {
+    if (!this.isMarketEnabled) return;
+
     try {
       // TODO: SDK method not yet available
       await (this.market.agentGroups as any).increaseInstallCount?.(identifier);

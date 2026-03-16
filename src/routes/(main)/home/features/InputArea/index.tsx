@@ -9,7 +9,11 @@ import { useAgentStore } from '@/store/agent';
 import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
 import { useHomeStore } from '@/store/home';
-import { serverConfigSelectors, useServerConfigStore } from '@/store/serverConfig';
+import {
+  featureFlagsSelectors,
+  serverConfigSelectors,
+  useServerConfigStore,
+} from '@/store/serverConfig';
 
 import CommunityRecommend from '../CommunityRecommend';
 import SuggestQuestions from '../SuggestQuestions';
@@ -25,6 +29,7 @@ const InputArea = () => {
   const inputActiveMode = useHomeStore((s) => s.inputActiveMode);
   const isLobehubSkillEnabled = useServerConfigStore(serverConfigSelectors.enableLobehubSkill);
   const isKlavisEnabled = useServerConfigStore(serverConfigSelectors.enableKlavis);
+  const { showMarket } = useServerConfigStore(featureFlagsSelectors);
   const showSkillBanner = isLobehubSkillEnabled || isKlavisEnabled;
   const chatInputRef = useRef<HTMLDivElement>(null);
 
@@ -139,7 +144,7 @@ const InputArea = () => {
           >
             <Flexbox gap={24}>
               <SuggestQuestions mode={inputActiveMode} />
-              <CommunityRecommend mode={inputActiveMode} />
+              {showMarket && <CommunityRecommend mode={inputActiveMode} />}
             </Flexbox>
           </motion.div>
         )}

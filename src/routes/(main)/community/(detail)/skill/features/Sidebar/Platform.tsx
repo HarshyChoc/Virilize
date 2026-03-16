@@ -1,5 +1,6 @@
 'use client';
 
+import { BRANDING_NAME } from '@lobechat/business-const';
 import { DEFAULT_INBOX_AVATAR, SESSION_CHAT_URL } from '@lobechat/const';
 import { Claude, Cline, Cursor, OpenAI } from '@lobehub/icons';
 import {
@@ -78,7 +79,7 @@ const genInstallCommand = (identifier?: string, platform?: PlatformType) => {
       return `npx -y @lobehub/market-cli skills install ${id} --agent ${agentMap[platform]}`;
     }
     default: {
-      return `# Recommended for LobeHub users:
+      return `# Recommended for ${BRANDING_NAME} users:
 # Open the marketplace page and install with one click:
 # https://lobechat.com/community/skills/${id}`;
     }
@@ -154,7 +155,7 @@ const Platform = memo<PlatformProps>(
       switch (active) {
         case PlatformType.LobeHub: {
           return {
-            platform: 'LobeHub',
+            platform: BRANDING_NAME,
             steps: t('skills.details.sidebar.platform.steps.lobehub'),
           };
         }
@@ -193,7 +194,7 @@ const Platform = memo<PlatformProps>(
 
     const command = genInstallCommand(identifier, active);
 
-    const agentPrompt = `Curl https://lobehub.com/skills/${identifier}/skill.md, then follow the instructions to set up LobeHub Skills Marketplace and install the skill. Once installed, read the SKILL.md file in the installed directory and follow its instructions to complete the task.`;
+    const agentPrompt = `Curl https://lobehub.com/skills/${identifier}/skill.md, then follow the instructions to set up ${BRANDING_NAME} Skills Marketplace and install the skill. Once installed, read the SKILL.md file in the installed directory and follow its instructions to complete the task.`;
 
     const handleUseOnLobeAI = useCallback(() => {
       if (!inboxAgentId) return;

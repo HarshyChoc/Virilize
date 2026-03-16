@@ -11,7 +11,7 @@ import { type ToolExecutionContext } from '@/server/services/toolExecution/types
 const log = debug('lobe-server:plugin-gateway-service');
 
 export class PluginGatewayService {
-  params: { PLUGINS_INDEX_URL: string; PLUGIN_SETTINGS: string | undefined };
+  params: { PLUGINS_INDEX_URL?: string; PLUGIN_SETTINGS: string | undefined };
 
   constructor() {
     const { PLUGINS_INDEX_URL, PLUGIN_SETTINGS } = getAppConfig();
@@ -26,6 +26,10 @@ export class PluginGatewayService {
     log('Executing plugin: %s:%s with args: %O', identifier, apiName, args, context);
 
     try {
+      if (!this.params.PLUGINS_INDEX_URL) {
+        throw new Error('Plugin marketplace is disabled for this deployment');
+      }
+
       // Construct plugin request
       const requestBody: PluginRequestPayload = {
         apiName,

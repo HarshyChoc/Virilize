@@ -1,10 +1,11 @@
 import { type ChatModelCard } from '@lobechat/types';
 import { type IconAvatarProps } from '@lobehub/icons';
-import { LobeHub, ModelIcon, ProviderIcon } from '@lobehub/icons';
+import { ModelIcon, ProviderIcon } from '@lobehub/icons';
 import { type FlexboxProps } from '@lobehub/ui';
 import { Avatar, Flexbox, Icon, Tag, Text, Tooltip } from '@lobehub/ui';
 import { createStaticStyles, useResponsive } from 'antd-style';
 import {
+  Cloud,
   Infinity as InfinityIcon,
   LucideEye,
   LucideImage,
@@ -349,7 +350,7 @@ export const ProviderItemRender = memo<ProviderItemRenderProps>(
             title={name}
           />
         ) : provider === 'lobehub' ? (
-          <LobeHub.Morden size={size} />
+          <Icon icon={Cloud} size={size} />
         ) : (
           <ProviderIcon provider={provider} size={size} type={type} />
         )}

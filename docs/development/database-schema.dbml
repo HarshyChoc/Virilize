@@ -72,6 +72,29 @@ table agents_knowledge_bases {
   }
 }
 
+table agent_credentials {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  agent_id text [not null]
+  user_id text [not null]
+  provider varchar(50) [not null]
+  account_label varchar(255)
+  auth_type varchar(50) [not null]
+  credentials text
+  external_account_id varchar(255)
+  scopes text[] [not null, default: `[]`]
+  token_expires_at "timestamp with time zone"
+  enabled boolean [not null, default: true]
+  accessed_at "timestamp with time zone" [not null, default: `now()`]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    agent_id [name: 'agent_credentials_agent_id_idx']
+    user_id [name: 'agent_credentials_user_id_idx']
+    provider [name: 'agent_credentials_provider_idx']
+  }
+}
+
 table agent_bot_providers {
   id uuid [pk, not null, default: `gen_random_uuid()`]
   agent_id text [not null]

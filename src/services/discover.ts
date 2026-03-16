@@ -46,6 +46,23 @@ class DiscoverService {
   private _isRetrying = false;
   private _tokenRefreshPromise: Promise<void> | null = null;
 
+  private isMarketEnabled = (): boolean => {
+    if (typeof window === 'undefined' || !window.global_serverConfigStore) return false;
+    try {
+      return !!window.global_serverConfigStore.getState().featureFlags.showMarket;
+    } catch {
+      return false;
+    }
+  };
+
+  private emptyPagedResponse = <T>(page: number = 1, pageSize: number = 20) => ({
+    currentPage: page,
+    items: [] as T[],
+    pageSize,
+    totalCount: 0,
+    totalPages: 0,
+  });
+
   private isMarketTrustedClientEnabled = (): boolean => {
     if (typeof window === 'undefined' || !window.global_serverConfigStore) return false;
     try {
@@ -57,6 +74,8 @@ class DiscoverService {
   };
 
   safeInjectMPToken = async () => {
+    if (!this.isMarketEnabled()) return;
+
     // If trusted client is enabled, authentication is handled by backend
     // No need to inject M2M token from client side
     if (this.isMarketTrustedClientEnabled()) return;
@@ -73,6 +92,8 @@ class DiscoverService {
   getAssistantCategories = async (
     params: CategoryListQuery & { source?: AssistantMarketSource } = {},
   ): Promise<CategoryItem[]> => {
+    if (!this.isMarketEnabled()) return [];
+
     const locale = globalHelpers.getCurrentLanguage();
     const { source, ...rest } = params;
     return lambdaClient.market.getAssistantCategories.query({
@@ -88,6 +109,8 @@ class DiscoverService {
     source?: AssistantMarketSource;
     version?: string;
   }): Promise<DiscoverAssistantDetail | undefined> => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getAssistantDetail.query({
       identifier: params.identifier,
@@ -100,10 +123,19 @@ class DiscoverService {
   getAssistantIdentifiers = async (
     params: { source?: AssistantMarketSource } = {},
   ): Promise<IdentifiersResponse> => {
+    if (!this.isMarketEnabled()) return [];
+
     return lambdaClient.market.getAssistantIdentifiers.query(params);
   };
 
   getAssistantList = async (params: AssistantQueryParams = {}): Promise<AssistantListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     await this.safeInjectMPToken();
 
     const locale = globalHelpers.getCurrentLanguage();
@@ -124,6 +156,13 @@ class DiscoverService {
     pageSize?: number;
     pluginId: string;
   }): Promise<AssistantListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getAgentsByPlugin.query({
       ...params,
@@ -136,6 +175,8 @@ class DiscoverService {
   // ============================== MCP Market ==============================
 
   getMcpCategories = async (params: CategoryListQuery = {}): Promise<CategoryItem[]> => {
+    if (!this.isMarketEnabled()) return [];
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getMcpCategories.query({
       ...params,
@@ -148,6 +189,10 @@ class DiscoverService {
     locale?: string;
     version?: string;
   }): Promise<DiscoverMcpDetail> => {
+    if (!this.isMarketEnabled()) {
+      throw new Error('Marketplace is disabled');
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getMcpDetail.query({
       ...params,
@@ -156,6 +201,16 @@ class DiscoverService {
   };
 
   getMcpList = async (params: McpQueryParams = {}): Promise<McpListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return {
+        categories: [],
+        ...this.emptyPagedResponse(
+          params.page ? Number(params.page) : 1,
+          params.pageSize ? Number(params.pageSize) : 20,
+        ),
+      };
+    }
+
     await this.safeInjectMPToken();
 
     const locale = globalHelpers.getCurrentLanguage();
@@ -168,6 +223,16 @@ class DiscoverService {
   };
 
   getMCPPluginList = async (params: MCPPluginListParams): Promise<McpListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return {
+        categories: [],
+        ...this.emptyPagedResponse(
+          params.page ? Number(params.page) : 1,
+          params.pageSize ? Number(params.pageSize) : 21,
+        ),
+      };
+    }
+
     await this.safeInjectMPToken();
 
     const locale = globalHelpers.getCurrentLanguage();
@@ -181,6 +246,8 @@ class DiscoverService {
   };
 
   getMcpManifest = async (params: { identifier: string; locale?: string; version?: string }) => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getMcpManifest.query({
       ...params,
@@ -192,16 +259,30 @@ class DiscoverService {
     identifier: string,
     options: { install?: boolean } = {},
   ): Promise<PluginManifest> => {
+    if (!this.isMarketEnabled()) {
+      throw new Error('Marketplace is disabled');
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
 
-    return lambdaClient.market.getMcpManifest.query({
+    const manifest = await lambdaClient.market.getMcpManifest.query({
       identifier,
       install: options.install,
       locale,
     });
+
+    if (!manifest) {
+      throw new Error('Marketplace is disabled');
+    }
+
+    return manifest;
   };
 
   registerClient = () => {
+    if (!this.isMarketEnabled()) {
+      return Promise.reject(new Error('Marketplace is disabled'));
+    }
+
     return lambdaClient.market.registerClientInMarketplace.mutate({});
   };
 
@@ -218,7 +299,7 @@ class DiscoverService {
     // if user don't allow tracing, just not report installation
     const allow = userGeneralSettingsSelectors.telemetry(useUserStore.getState());
 
-    if (!allow) return;
+    if (!allow || !this.isMarketEnabled()) return;
     await this.safeInjectMPToken();
 
     const reportData = {
@@ -243,7 +324,7 @@ class DiscoverService {
     // if user don't allow tracing , just not report calling
     const allow = userGeneralSettingsSelectors.telemetry(useUserStore.getState());
 
-    if (!allow) return;
+    if (!allow || !this.isMarketEnabled()) return;
 
     await this.safeInjectMPToken();
 
@@ -254,7 +335,7 @@ class DiscoverService {
 
   reportMcpEvent = async (eventData: PluginEventRequest) => {
     const allow = userGeneralSettingsSelectors.telemetry(useUserStore.getState());
-    if (!allow) return;
+    if (!allow || !this.isMarketEnabled()) return;
 
     await this.safeInjectMPToken();
 
@@ -275,7 +356,7 @@ class DiscoverService {
     // if user don't allow tracing, just not report installation
     const allow = userGeneralSettingsSelectors.telemetry(useUserStore.getState());
 
-    if (!allow) return;
+    if (!allow || !this.isMarketEnabled()) return;
 
     await this.safeInjectMPToken();
 
@@ -286,7 +367,7 @@ class DiscoverService {
 
   reportAgentEvent = async (eventData: AgentEventRequest) => {
     const allow = userGeneralSettingsSelectors.telemetry(useUserStore.getState());
-    if (!allow) return;
+    if (!allow || !this.isMarketEnabled()) return;
 
     await this.safeInjectMPToken();
 
@@ -303,6 +384,8 @@ class DiscoverService {
   // ============================== Models ==============================
 
   getModelCategories = async (params: CategoryListQuery = {}): Promise<CategoryItem[]> => {
+    if (!this.isMarketEnabled()) return [];
+
     return lambdaClient.market.getModelCategories.query(params);
   };
 
@@ -310,6 +393,8 @@ class DiscoverService {
     identifier: string;
     locale?: string;
   }): Promise<DiscoverModelDetail | undefined> => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getModelDetail.query({
       ...params,
@@ -318,10 +403,19 @@ class DiscoverService {
   };
 
   getModelIdentifiers = async (): Promise<IdentifiersResponse> => {
+    if (!this.isMarketEnabled()) return [];
+
     return lambdaClient.market.getModelIdentifiers.query();
   };
 
   getModelList = async (params: ModelQueryParams = {}): Promise<ModelListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getModelList.query({
       ...params,
@@ -334,6 +428,8 @@ class DiscoverService {
   // ============================== Plugin Market ==============================
 
   getPluginCategories = async (params: CategoryListQuery = {}): Promise<CategoryItem[]> => {
+    if (!this.isMarketEnabled()) return [];
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getPluginCategories.query({
       ...params,
@@ -346,6 +442,8 @@ class DiscoverService {
     locale?: string;
     withManifest?: boolean;
   }): Promise<DiscoverPluginDetail | undefined> => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getPluginDetail.query({
       ...params,
@@ -354,10 +452,19 @@ class DiscoverService {
   };
 
   getPluginIdentifiers = async (): Promise<IdentifiersResponse> => {
+    if (!this.isMarketEnabled()) return [];
+
     return lambdaClient.market.getPluginIdentifiers.query();
   };
 
   getPluginList = async (params: PluginQueryParams = {}): Promise<PluginListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getPluginList.query({
       ...params,
@@ -374,6 +481,8 @@ class DiscoverService {
     locale?: string;
     withReadme?: boolean;
   }): Promise<DiscoverProviderDetail | undefined> => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getProviderDetail.query({
       ...params,
@@ -382,10 +491,19 @@ class DiscoverService {
   };
 
   getProviderIdentifiers = async (): Promise<IdentifiersResponse> => {
+    if (!this.isMarketEnabled()) return [];
+
     return lambdaClient.market.getProviderIdentifiers.query();
   };
 
   getProviderList = async (params: ProviderQueryParams = {}): Promise<ProviderListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getProviderList.query({
       ...params,
@@ -401,6 +519,8 @@ class DiscoverService {
     locale?: string;
     username: string;
   }): Promise<DiscoverUserProfile | undefined> => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getUserInfo.query({
       locale,
@@ -535,6 +655,8 @@ class DiscoverService {
   // ============================== Skills Market ==============================
 
   getSkillCategories = async (params: CategoryListQuery = {}): Promise<SkillCategoryItem[]> => {
+    if (!this.isMarketEnabled()) return [];
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.skill.getSkillCategories.query({
       ...params,
@@ -547,6 +669,10 @@ class DiscoverService {
     locale?: string;
     version?: string;
   }): Promise<DiscoverSkillDetail> => {
+    if (!this.isMarketEnabled()) {
+      throw new Error('Marketplace is disabled');
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.skill.getSkillDetail.query({
       ...params,
@@ -555,6 +681,13 @@ class DiscoverService {
   };
 
   getSkillList = async (params: SkillQueryParams = {}): Promise<SkillListResponse> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.skill.getSkillList.query({
       ...params,
@@ -566,7 +699,7 @@ class DiscoverService {
 
   reportSkillEvent = async (eventData: { event: string; identifier: string; source?: string }) => {
     const allow = userGeneralSettingsSelectors.telemetry(useUserStore.getState());
-    if (!allow) return;
+    if (!allow || !this.isMarketEnabled()) return;
 
     const payload = cleanObject({
       ...eventData,
@@ -581,6 +714,8 @@ class DiscoverService {
   // ============================== Group Agent Market ==============================
 
   getGroupAgentCategories = async (params: CategoryListQuery = {}): Promise<CategoryItem[]> => {
+    if (!this.isMarketEnabled()) return [];
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getGroupAgentCategories.query({
       ...params,
@@ -593,6 +728,8 @@ class DiscoverService {
     locale?: string;
     version?: string;
   }): Promise<any> => {
+    if (!this.isMarketEnabled()) return undefined;
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.getGroupAgentDetail.query({
       identifier: params.identifier,
@@ -602,10 +739,19 @@ class DiscoverService {
   };
 
   getGroupAgentIdentifiers = async (): Promise<IdentifiersResponse> => {
+    if (!this.isMarketEnabled()) return [];
+
     return lambdaClient.market.getGroupAgentIdentifiers.query();
   };
 
   getGroupAgentList = async (params: GroupAgentQueryParams = {}): Promise<any> => {
+    if (!this.isMarketEnabled()) {
+      return this.emptyPagedResponse(
+        params.page ? Number(params.page) : 1,
+        params.pageSize ? Number(params.pageSize) : 20,
+      );
+    }
+
     const locale = globalHelpers.getCurrentLanguage();
     return lambdaClient.market.agentGroup.getAgentGroupList.query(
       {
@@ -623,10 +769,14 @@ class DiscoverService {
     identifier: string;
     source?: string;
   }): Promise<void> => {
+    if (!this.isMarketEnabled()) return;
+
     await lambdaClient.market.reportGroupAgentEvent.mutate(params);
   };
 
   reportGroupAgentInstall = async (identifier: string): Promise<void> => {
+    if (!this.isMarketEnabled()) return;
+
     await lambdaClient.market.reportGroupAgentInstall.mutate({ identifier });
   };
 }

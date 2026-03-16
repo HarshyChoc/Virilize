@@ -2,6 +2,7 @@ import debug from 'debug';
 
 import { businessConfigEndpoints } from '@/business/server/lambda-routers/config';
 import { getServerFeatureFlagsStateFromEdgeConfig } from '@/config/featureFlags';
+import { appEnv } from '@/envs/app';
 import { publicProcedure, router } from '@/libs/trpc/lambda';
 import { getServerDefaultAgentConfig, getServerGlobalConfig } from '@/server/globalConfig';
 import { type GlobalRuntimeConfig } from '@/types/serverConfig';
@@ -15,6 +16,11 @@ export const configRouter = router({
 
   getGlobalConfig: publicProcedure.query(async ({ ctx }): Promise<GlobalRuntimeConfig> => {
     log('[GlobalConfig] Starting global config retrieval for user:', ctx.userId || 'anonymous');
+    const marketEnabled = !!(
+      appEnv.AGENTS_INDEX_URL ||
+      appEnv.PLUGINS_INDEX_URL ||
+      appEnv.MARKET_BASE_URL
+    );
 
     const [serverConfig, serverFeatureFlags] = await Promise.all([
       getServerGlobalConfig(),
@@ -27,7 +33,13 @@ export const configRouter = router({
       serverFeatureFlags,
     );
 
-    const result = { serverConfig, serverFeatureFlags };
+    const result = {
+      serverConfig,
+      serverFeatureFlags: {
+        ...serverFeatureFlags,
+        showMarket: !!serverFeatureFlags.showMarket && marketEnabled,
+      },
+    };
     log(
       '[GlobalConfig] Returning global config with feature flags keys:',
       Object.keys(serverFeatureFlags),

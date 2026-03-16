@@ -3,6 +3,7 @@ import { AgentManagementIdentifier } from '@lobechat/builtin-tool-agent-manageme
 import { GroupAgentBuilderIdentifier } from '@lobechat/builtin-tool-group-agent-builder';
 import { GTDIdentifier } from '@lobechat/builtin-tool-gtd';
 import { LobeToolIdentifier } from '@lobechat/builtin-tool-tools';
+import { BRANDING_NAME } from '@lobechat/business-const';
 import { isDesktop, KLAVIS_SERVER_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
 import type {
   AgentBuilderContext,
@@ -262,7 +263,7 @@ export const contextEngineering = async ({
             const server = allKlavisServers.find((s) => s.identifier === klavisType.identifier);
 
             officialTools.push({
-              description: `LobeHub Mcp Server: ${klavisType.label}`,
+              description: `${BRANDING_NAME} MCP Server: ${klavisType.label}`,
               enabled: enabledPlugins.includes(klavisType.identifier),
               identifier: klavisType.identifier,
               installed: !!server,
@@ -284,7 +285,7 @@ export const contextEngineering = async ({
             const server = allLobehubSkillServers.find((s) => s.identifier === provider.id);
 
             officialTools.push({
-              description: `LobeHub Skill Provider: ${provider.label}`,
+              description: `${BRANDING_NAME} Skill Provider: ${provider.label}`,
               enabled: enabledPlugins.includes(provider.id),
               identifier: provider.id,
               installed: !!server,

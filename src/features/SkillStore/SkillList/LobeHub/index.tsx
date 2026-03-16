@@ -1,5 +1,6 @@
 'use client';
 
+import { BRANDING_NAME } from '@lobechat/business-const';
 import { KLAVIS_SERVER_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
 import { type BuiltinSkill, type LobeToolMeta } from '@lobechat/types';
 import isEqual from 'fast-deep-equal';
@@ -34,7 +35,7 @@ const getBuiltinToolsOnly = (s: ToolStoreState): LobeToolMeta[] => {
   return s.builtinTools
     .filter((item) => !item.hidden)
     .map((t) => ({
-      author: 'LobeHub',
+      author: BRANDING_NAME,
       identifier: t.identifier,
       meta: t.manifest.meta,
       type: 'builtin' as const,

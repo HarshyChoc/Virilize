@@ -1,3 +1,5 @@
+import { BRANDING_NAME } from '@lobechat/business-const';
+
 import { type ToolStore } from '../../store';
 import { type KlavisServer } from './types';
 import { KlavisServerStatus } from './types';
@@ -107,7 +109,7 @@ export const klavisStoreSelectors = {
             identifier: server.identifier,
             meta: {
               avatar: '☁️',
-              description: `LobeHub Mcp Server: ${server.serverName}`,
+              description: `${BRANDING_NAME} MCP Server: ${server.serverName}`,
               tags: ['klavis', 'mcp'],
               title: server.serverName,
             },

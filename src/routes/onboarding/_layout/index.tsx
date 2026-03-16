@@ -1,5 +1,6 @@
 'use client';
 
+import { ORG_NAME } from '@lobechat/business-const';
 import { Center, Flexbox, Text } from '@lobehub/ui';
 import { Divider } from 'antd';
 import { cx } from 'antd-style';
@@ -40,7 +41,7 @@ const OnBoardingContainer: FC<PropsWithChildren> = ({ children }) => {
         </Center>
         <Center padding={24}>
           <Text align={'center'} type={'secondary'}>
-            © 2026 LobeHub. All rights reserved.
+            © 2026 {ORG_NAME}. All rights reserved.
           </Text>
         </Center>
       </Flexbox>

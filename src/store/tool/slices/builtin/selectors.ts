@@ -1,3 +1,4 @@
+import { BRANDING_NAME } from '@lobechat/business-const';
 import { type BuiltinSkill, type LobeToolMeta } from '@lobechat/types';
 
 import {
@@ -18,7 +19,7 @@ export interface LobeToolMetaWithAvailability extends LobeToolMeta {
 }
 
 const toBuiltinMeta = (t: ToolStoreState['builtinTools'][number]): LobeToolMeta => ({
-  author: 'LobeHub',
+  author: BRANDING_NAME,
   identifier: t.identifier,
   meta: t.manifest.meta,
   type: 'builtin' as const,
@@ -32,7 +33,7 @@ const toBuiltinMetaWithAvailability = (
 });
 
 const toSkillMeta = (s: BuiltinSkill): LobeToolMeta => ({
-  author: 'LobeHub',
+  author: BRANDING_NAME,
   identifier: s.identifier,
   meta: {
     avatar: s.avatar,
@@ -56,7 +57,7 @@ const getKlavisMetas = (s: ToolStoreState): LobeToolMeta[] =>
       identifier: server.identifier,
       meta: {
         avatar: '☁️',
-        description: `LobeHub Mcp Server: ${server.serverName}`,
+        description: `${BRANDING_NAME} MCP Server: ${server.serverName}`,
         tags: ['klavis', 'mcp'],
         // title still uses serverName to display friendly name
         title: server.serverName,

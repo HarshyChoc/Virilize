@@ -6,18 +6,20 @@ import { type Locales } from '@/locales/resources';
 import { normalizeLocale } from '@/locales/resources';
 
 export class PluginStore {
-  private readonly baseUrl: string;
+  private readonly baseUrl?: string;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || appEnv.PLUGINS_INDEX_URL;
+    this.baseUrl = baseUrl ?? appEnv.PLUGINS_INDEX_URL;
   }
 
   getPluginIndexUrl = (lang: Locales = DEFAULT_LANG) => {
-    if (isLocaleNotSupport(lang)) return this.baseUrl;
-    return urlJoin(this.baseUrl, `index.${normalizeLocale(lang)}.json`);
+    if (isLocaleNotSupport(lang)) return this.baseUrl!;
+    return urlJoin(this.baseUrl!, `index.${normalizeLocale(lang)}.json`);
   };
 
   getPluginList = async (locale?: string): Promise<any[]> => {
+    if (!this.baseUrl) return [];
+
     try {
       let res = await fetch(this.getPluginIndexUrl(locale as Locales), {
         next: {

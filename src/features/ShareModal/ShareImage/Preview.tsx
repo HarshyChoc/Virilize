@@ -34,7 +34,7 @@ const Preview = memo<PreviewProps>(
       agentSelectors.currentAgentBackgroundColor(s),
     ]);
 
-    const displayTitle = isInbox ? 'Lobe AI' : title;
+    const displayTitle = isInbox ? 'Virilize AI' : title;
 
     return (
       <div

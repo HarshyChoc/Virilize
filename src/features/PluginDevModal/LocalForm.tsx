@@ -1,3 +1,4 @@
+import { BRANDING_NAME } from '@lobechat/business-const';
 import { type FormItemProps } from '@lobehub/ui';
 import { Form, Input, TextArea } from '@lobehub/ui';
 import { type FormInstance } from 'antd';
@@ -56,7 +57,7 @@ const LocalForm = memo<{ form: FormInstance; mode?: 'edit' | 'create' }>(({ form
       name: ['manifest', 'meta', 'description'],
     },
     {
-      children: <Input placeholder={'LobeHub'} />,
+      children: <Input placeholder={BRANDING_NAME} />,
       desc: t('dev.meta.author.desc'),
       label: t('dev.meta.author.label'),
       name: ['manifest', 'author'],

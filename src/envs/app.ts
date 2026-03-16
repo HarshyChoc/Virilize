@@ -33,6 +33,28 @@ const ASSISTANT_INDEX_URL = 'https://registry.npmmirror.com/@lobehub/agents-inde
 
 const PLUGINS_INDEX_URL = 'https://registry.npmmirror.com/@lobehub/plugins-index/v1/files/public';
 
+const normalizeOptionalUrl = (value?: string) => {
+  if (value === undefined) return undefined;
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const resolveIndexedUrl = (value: string | undefined, fallback: string) => {
+  if (value === undefined) return fallback;
+  return normalizeOptionalUrl(value);
+};
+
+const RESOLVED_AGENTS_INDEX_URL = resolveIndexedUrl(
+  process.env.AGENTS_INDEX_URL,
+  ASSISTANT_INDEX_URL,
+);
+const RESOLVED_PLUGINS_INDEX_URL = resolveIndexedUrl(
+  process.env.PLUGINS_INDEX_URL,
+  PLUGINS_INDEX_URL,
+);
+const RESOLVED_MARKET_BASE_URL = normalizeOptionalUrl(process.env.MARKET_BASE_URL);
+
 export const getAppConfig = () => {
   return createEnv({
     clientPrefix: 'NEXT_PUBLIC_',
@@ -40,12 +62,12 @@ export const getAppConfig = () => {
       NEXT_PUBLIC_ENABLE_SENTRY: z.boolean(),
     },
     server: {
-      AGENTS_INDEX_URL: z.string().url(),
+      AGENTS_INDEX_URL: z.string().optional(),
 
       DEFAULT_AGENT_CONFIG: z.string(),
       SYSTEM_AGENT: z.string().optional(),
 
-      PLUGINS_INDEX_URL: z.string().url(),
+      PLUGINS_INDEX_URL: z.string().optional(),
       PLUGIN_SETTINGS: z.string().optional(),
 
       APP_URL: z.string(),
@@ -88,16 +110,12 @@ export const getAppConfig = () => {
       // Sentry
       NEXT_PUBLIC_ENABLE_SENTRY: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-      AGENTS_INDEX_URL: !!process.env.AGENTS_INDEX_URL
-        ? process.env.AGENTS_INDEX_URL
-        : ASSISTANT_INDEX_URL,
+      AGENTS_INDEX_URL: RESOLVED_AGENTS_INDEX_URL,
 
       DEFAULT_AGENT_CONFIG: process.env.DEFAULT_AGENT_CONFIG || '',
       SYSTEM_AGENT: process.env.SYSTEM_AGENT,
 
-      PLUGINS_INDEX_URL: !!process.env.PLUGINS_INDEX_URL
-        ? process.env.PLUGINS_INDEX_URL
-        : PLUGINS_INDEX_URL,
+      PLUGINS_INDEX_URL: RESOLVED_PLUGINS_INDEX_URL,
 
       PLUGIN_SETTINGS: process.env.PLUGIN_SETTINGS,
 
@@ -113,7 +131,7 @@ export const getAppConfig = () => {
 
       SSRF_ALLOW_PRIVATE_IP_ADDRESS: process.env.SSRF_ALLOW_PRIVATE_IP_ADDRESS === '1',
       SSRF_ALLOW_IP_ADDRESS_LIST: process.env.SSRF_ALLOW_IP_ADDRESS_LIST,
-      MARKET_BASE_URL: process.env.MARKET_BASE_URL,
+      MARKET_BASE_URL: RESOLVED_MARKET_BASE_URL,
 
       MARKET_TRUSTED_CLIENT_SECRET: process.env.MARKET_TRUSTED_CLIENT_SECRET,
       MARKET_TRUSTED_CLIENT_ID: process.env.MARKET_TRUSTED_CLIENT_ID,

@@ -12,6 +12,13 @@ vi.mock('@/server/modules/AssistantStore');
 vi.mock('@/server/modules/PluginStore');
 vi.mock('@lobehub/market-sdk');
 vi.mock('@/utils/toolManifest');
+vi.mock('@/envs/app', () => ({
+  appEnv: {
+    AGENTS_INDEX_URL: 'https://example.com/agents',
+    MARKET_BASE_URL: 'https://market.lobehub.com',
+    PLUGINS_INDEX_URL: 'https://example.com/plugins',
+  },
+}));
 vi.mock('@/locales/resources', () => ({
   normalizeLocale: vi.fn((locale) => {
     if (locale === 'en-US') return 'en';

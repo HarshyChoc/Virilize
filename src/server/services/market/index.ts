@@ -3,12 +3,24 @@ import { MarketSDK } from '@lobehub/market-sdk';
 import debug from 'debug';
 import { type NextRequest } from 'next/server';
 
+import { appEnv } from '@/envs/app';
 import { type TrustedClientUserInfo } from '@/libs/trusted-client';
 import { generateTrustedClientToken, getTrustedClientTokenForSession } from '@/libs/trusted-client';
 
 const log = debug('lobe-server:market-service');
 
-const MARKET_BASE_URL = process.env.MARKET_BASE_URL || 'https://market.lobehub.com';
+const DISABLED_MARKET_ERROR = 'Market service is disabled for this deployment';
+
+const createDisabledMarketProxy = (path = 'market'): MarketSDK =>
+  new Proxy(() => {}, {
+    get: (_target, prop) => {
+      if (prop === 'then') return undefined;
+      return createDisabledMarketProxy(`${path}.${String(prop)}`);
+    },
+    apply: () => {
+      throw new Error(`${DISABLED_MARKET_ERROR} (${path})`);
+    },
+  }) as unknown as MarketSDK;
 
 // ============================== Helper Functions ==============================
 
@@ -75,10 +87,20 @@ export interface MarketServiceOptions {
  * ```
  */
 export class MarketService {
+  enabled: boolean;
   market: MarketSDK;
 
   constructor(options: MarketServiceOptions = {}) {
     const { accessToken, userInfo, clientCredentials, trustedClientToken } = options;
+    const marketBaseUrl = appEnv.MARKET_BASE_URL;
+
+    this.enabled = !!marketBaseUrl;
+
+    if (!this.enabled) {
+      this.market = createDisabledMarketProxy();
+      log('MarketService initialized in disabled mode');
+      return;
+    }
 
     // Use provided trustedClientToken or generate from userInfo
     const resolvedTrustedClientToken =
@@ -86,7 +108,7 @@ export class MarketService {
 
     this.market = new MarketSDK({
       accessToken,
-      baseURL: MARKET_BASE_URL,
+      baseURL: marketBaseUrl,
       clientId: clientCredentials?.clientId,
       clientSecret: clientCredentials?.clientSecret,
       trustedClientToken: resolvedTrustedClientToken,
@@ -94,7 +116,7 @@ export class MarketService {
 
     log(
       'MarketService initialized: baseURL=%s, hasAccessToken=%s, hasTrustedToken=%s, hasClientCredentials=%s',
-      MARKET_BASE_URL,
+      marketBaseUrl,
       !!accessToken,
       !!resolvedTrustedClientToken,
       !!clientCredentials,
@@ -188,7 +210,13 @@ export class MarketService {
    * Get user info with trusted client token (server-side)
    */
   async getUserInfoWithTrustedClient() {
-    const userInfoUrl = `${MARKET_BASE_URL}/lobehub-oidc/userinfo`;
+    const marketBaseUrl = appEnv.MARKET_BASE_URL;
+
+    if (!marketBaseUrl) {
+      throw new Error(DISABLED_MARKET_ERROR);
+    }
+
+    const userInfoUrl = `${marketBaseUrl}/lobehub-oidc/userinfo`;
     const response = await fetch(userInfoUrl, {
       // @ts-ignore
       headers: this.market.headers,

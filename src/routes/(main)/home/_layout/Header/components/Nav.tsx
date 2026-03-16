@@ -67,44 +67,44 @@ const Nav = memo(() => {
 
   return (
     <Flexbox gap={1} paddingInline={4}>
-      {items.map((item) => {
-        const extra = item.isNew ? newBadge : undefined;
-        const content = (
-          <NavItem
-            active={tab === item.key}
-            extra={extra}
-            hidden={item.hidden}
-            icon={item.icon}
-            key={item.key}
-            title={item.title}
-            onClick={item.onClick}
-          />
-        );
-        if (!item.url) return content;
-
-        return (
-          <Link
-            key={item.key}
-            to={item.url}
-            onClick={(e) => {
-              if (isModifierClick(e)) return;
-              e.preventDefault();
-              item?.onClick?.();
-              if (item.url) {
-                navigate(item.url);
-              }
-            }}
-          >
+      {items
+        .filter((item) => !item.hidden)
+        .map((item) => {
+          const extra = item.isNew ? newBadge : undefined;
+          const content = (
             <NavItem
               active={tab === item.key}
               extra={extra}
-              hidden={item.hidden}
               icon={item.icon}
+              key={item.key}
               title={item.title}
+              onClick={item.onClick}
             />
-          </Link>
-        );
-      })}
+          );
+          if (!item.url) return content;
+
+          return (
+            <Link
+              key={item.key}
+              to={item.url}
+              onClick={(e) => {
+                if (isModifierClick(e)) return;
+                e.preventDefault();
+                item?.onClick?.();
+                if (item.url) {
+                  navigate(item.url);
+                }
+              }}
+            >
+              <NavItem
+                active={tab === item.key}
+                extra={extra}
+                icon={item.icon}
+                title={item.title}
+              />
+            </Link>
+          );
+        })}
     </Flexbox>
   );
 });

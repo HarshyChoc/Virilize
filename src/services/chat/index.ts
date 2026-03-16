@@ -1,4 +1,5 @@
 import { AgentBuilderIdentifier } from '@lobechat/builtin-tool-agent-builder';
+import { BRANDING_NAME } from '@lobechat/business-const';
 import { KLAVIS_SERVER_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
 import { type OfficialToolItem } from '@lobechat/context-engine';
 import { type FetchSSEOptions } from '@lobechat/fetch-sse';
@@ -197,7 +198,7 @@ class ChatService {
           const server = allKlavisServers.find((s) => s.identifier === klavisType.identifier);
 
           officialTools.push({
-            description: `LobeHub Mcp Server: ${klavisType.label}`,
+            description: `${BRANDING_NAME} MCP Server: ${klavisType.label}`,
             enabled: enabledPlugins.includes(klavisType.identifier),
             identifier: klavisType.identifier,
             installed: !!server,
@@ -219,7 +220,7 @@ class ChatService {
           const server = allLobehubSkillServers.find((s) => s.identifier === provider.id);
 
           officialTools.push({
-            description: `LobeHub Skill Provider: ${provider.label}`,
+            description: `${BRANDING_NAME} Skill Provider: ${provider.label}`,
             enabled: enabledPlugins.includes(provider.id),
             identifier: provider.id,
             installed: !!server,
