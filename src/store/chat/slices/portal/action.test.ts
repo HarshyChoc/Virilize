@@ -1,11 +1,33 @@
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useChatStore } from '@/store/chat';
 
 import { PortalViewType } from './initialState';
 
+const { localStorageMock } = vi.hoisted(() => {
+  const mock = {
+    getItem: vi.fn(() => null),
+    removeItem: vi.fn(),
+    setItem: vi.fn(),
+  };
+
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: mock,
+  });
+
+  return { localStorageMock: mock };
+});
+
 vi.mock('zustand/traditional');
+
+beforeEach(() => {
+  useChatStore.setState(useChatStore.getInitialState());
+  localStorageMock.getItem.mockReturnValue(null);
+  localStorageMock.removeItem.mockReset();
+  localStorageMock.setItem.mockReset();
+});
 
 describe('chatDockSlice', () => {
   describe('pushPortalView', () => {
@@ -264,6 +286,38 @@ describe('chatDockSlice', () => {
         identifier: 'identifier-2',
       });
       expect(result.current.showPortal).toBe(true);
+    });
+  });
+
+  describe('canvas views', () => {
+    it('should open the canvas for an agent and expose it on the portal stack', () => {
+      const { result } = renderHook(() => useChatStore());
+
+      act(() => {
+        result.current.openCanvas('agent-canvas-1');
+      });
+
+      expect(result.current.portalStack).toHaveLength(1);
+      expect(result.current.portalStack[0]).toEqual({
+        agentId: 'agent-canvas-1',
+        type: PortalViewType.Canvas,
+      });
+      expect(result.current.showPortal).toBe(true);
+    });
+
+    it('should close the canvas when it is the active portal view', () => {
+      const { result } = renderHook(() => useChatStore());
+
+      act(() => {
+        result.current.openCanvas('agent-canvas-1');
+      });
+
+      act(() => {
+        result.current.closeCanvas();
+      });
+
+      expect(result.current.portalStack).toHaveLength(0);
+      expect(result.current.showPortal).toBe(false);
     });
   });
 });

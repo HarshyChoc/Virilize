@@ -97,6 +97,26 @@ describe('chatDockSelectors', () => {
     });
   });
 
+  describe('canvas selectors', () => {
+    it('should return true when the current view is Canvas', () => {
+      const state = createState({
+        portalStack: [{ agentId: 'agent-canvas-1', type: PortalViewType.Canvas }],
+      });
+
+      expect(chatPortalSelectors.showCanvas(state)).toBe(true);
+      expect(chatPortalSelectors.canvasAgentId(state)).toBe('agent-canvas-1');
+    });
+
+    it('should return false and undefined when the current view is not Canvas', () => {
+      const state = createState({
+        portalStack: [{ type: PortalViewType.Notebook }],
+      });
+
+      expect(chatPortalSelectors.showCanvas(state)).toBe(false);
+      expect(chatPortalSelectors.canvasAgentId(state)).toBeUndefined();
+    });
+  });
+
   describe('showDock', () => {
     it('should return the showDock state', () => {
       expect(chatPortalSelectors.showPortal(createState({ showPortal: true }))).toBe(true);

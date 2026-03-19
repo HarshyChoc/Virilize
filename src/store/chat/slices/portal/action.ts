@@ -36,6 +36,13 @@ export class ChatPortalActionImpl {
     }
   };
 
+  closeCanvas = (): void => {
+    const { portalStack } = this.#get();
+    if (getCurrentViewType(portalStack) === PortalViewType.Canvas) {
+      this.#get().popPortalView();
+    }
+  };
+
   closeDocument = (): void => {
     const { portalStack } = this.#get();
     if (getCurrentViewType(portalStack) === PortalViewType.Document) {
@@ -88,6 +95,10 @@ export class ChatPortalActionImpl {
 
   openArtifact = (artifact: PortalArtifact): void => {
     this.#get().pushPortalView({ artifact, type: PortalViewType.Artifact });
+  };
+
+  openCanvas = (agentId: string): void => {
+    this.#get().pushPortalView({ agentId, type: PortalViewType.Canvas });
   };
 
   openDocument = (documentId: string): void => {

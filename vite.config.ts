@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import path from 'node:path';
 
 import type { PluginOption, ViteDevServer } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
@@ -26,12 +26,17 @@ export default defineConfig({
   build: {
     outDir: isMobile ? 'dist/mobile' : 'dist/desktop',
     rollupOptions: {
-      input: resolve(__dirname, isMobile ? 'index.mobile.html' : 'index.html'),
+      input: path.resolve(__dirname, isMobile ? 'index.mobile.html' : 'index.html'),
       output: sharedRollupOutput,
     },
   },
   define: sharedRendererDefine({ isMobile, isElectron: false }),
   optimizeDeps: sharedOptimizeDeps,
+  resolve: {
+    alias: {
+      'zlib-sync': path.resolve(__dirname, 'src/utils/vite/zlibSyncStub.ts'),
+    },
+  },
   plugins: [
     vercelSkewProtection(),
     viteEnvRestartKeys(['APP_URL']),

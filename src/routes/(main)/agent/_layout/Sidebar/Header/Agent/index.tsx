@@ -1,7 +1,7 @@
 'use client';
 
-import { ActionIcon, Avatar, Block, Text } from '@lobehub/ui';
-import { ChevronsUpDownIcon } from 'lucide-react';
+import { ActionIcon, Avatar, Block, Flexbox, Text } from '@lobehub/ui';
+import { ChevronsUpDownIcon, ScreenShareIcon } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { DEFAULT_AVATAR, DEFAULT_INBOX_AVATAR } from '@/const/meta';
 import { SkeletonItem } from '@/features/NavPanel/components/SkeletonList';
 import { useAgentStore } from '@/store/agent';
 import { agentSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
+import { useChatStore } from '@/store/chat';
 
 import SwitchPanel from './SwitchPanel';
 
@@ -23,6 +24,7 @@ const Agent = memo<PropsWithChildren>(() => {
     agentSelectors.currentAgentAvatar(s),
     agentSelectors.currentAgentBackgroundColor(s),
   ]);
+  const [activeAgentId, openCanvas] = useChatStore((s) => [s.activeAgentId, s.openCanvas]);
 
   const displayTitle = isInbox ? 'Virilize AI' : title || t('defaultSession', { ns: 'common' });
 
@@ -51,16 +53,33 @@ const Agent = memo<PropsWithChildren>(() => {
         <Text ellipsis weight={500}>
           {displayTitle}
         </Text>
-        <ActionIcon
-          icon={ChevronsUpDownIcon}
-          size={{
-            blockSize: 28,
-            size: 16,
-          }}
-          style={{
-            width: 24,
-          }}
-        />
+        <Flexbox horizontal gap={2}>
+          {!isInbox && activeAgentId && (
+            <ActionIcon
+              icon={ScreenShareIcon}
+              style={{ width: 24 }}
+              size={{
+                blockSize: 28,
+                size: 16,
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openCanvas(activeAgentId);
+              }}
+            />
+          )}
+          <ActionIcon
+            icon={ChevronsUpDownIcon}
+            size={{
+              blockSize: 28,
+              size: 16,
+            }}
+            style={{
+              width: 24,
+            }}
+          />
+        </Flexbox>
       </Block>
     </SwitchPanel>
   );

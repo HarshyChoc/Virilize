@@ -30,6 +30,7 @@ const showPortal = (s: ChatStoreState) => s.showPortal;
 // ============== View Type Guards ==============
 
 const showArtifactUI = (s: ChatStoreState) => currentViewType(s) === PortalViewType.Artifact;
+const showCanvas = (s: ChatStoreState) => currentViewType(s) === PortalViewType.Canvas;
 const showDocument = (s: ChatStoreState) => currentViewType(s) === PortalViewType.Document;
 const showNotebook = (s: ChatStoreState) => currentViewType(s) === PortalViewType.Notebook;
 const showFilePreview = (s: ChatStoreState) => currentViewType(s) === PortalViewType.FilePreview;
@@ -55,6 +56,11 @@ const getViewData = <T extends PortalViewType>(
 const currentArtifact = (s: ChatStoreState): PortalArtifact | undefined => {
   const view = getViewData(s, PortalViewType.Artifact);
   return view?.artifact;
+};
+
+const canvasAgentId = (s: ChatStoreState): string | undefined => {
+  const view = getViewData(s, PortalViewType.Canvas);
+  return view?.agentId;
 };
 
 const artifactTitle = (s: ChatStoreState) => currentArtifact(s)?.title;
@@ -133,6 +139,7 @@ export const chatPortalSelectors = {
 
   // View type guards
   showArtifactUI,
+  showCanvas,
   showDocument,
   showNotebook,
   showFilePreview,
@@ -141,6 +148,7 @@ export const chatPortalSelectors = {
 
   // Artifact data
   currentArtifact,
+  canvasAgentId,
   artifactTitle,
   artifactIdentifier,
   artifactMessageId,
