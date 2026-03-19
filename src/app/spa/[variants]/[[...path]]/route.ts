@@ -37,23 +37,23 @@ export function generateStaticParams() {
 }
 
 const isDev = process.env.NODE_ENV === 'development';
-const VITE_DEV_ORIGIN = 'http://localhost:9876';
+const VITE_DEV_ORIGIN_CANDIDATES = ['http://localhost:9876', 'http://localhost:9877'];
 
-async function rewriteViteAssetUrls(html: string): Promise<string> {
+async function rewriteViteAssetUrls(html: string, viteOrigin: string): Promise<string> {
   const { parseHTML } = await import('linkedom');
   const { document } = parseHTML(html);
 
   document.querySelectorAll('script[src]').forEach((el: Element) => {
     const src = el.getAttribute('src');
     if (src && src.startsWith('/')) {
-      el.setAttribute('src', `${VITE_DEV_ORIGIN}${src}`);
+      el.setAttribute('src', `${viteOrigin}${src}`);
     }
   });
 
   document.querySelectorAll('link[href]').forEach((el: Element) => {
     const href = el.getAttribute('href');
     if (href && href.startsWith('/')) {
-      el.setAttribute('href', `${VITE_DEV_ORIGIN}${href}`);
+      el.setAttribute('href', `${viteOrigin}${href}`);
     }
   });
 
@@ -62,7 +62,7 @@ async function rewriteViteAssetUrls(html: string): Promise<string> {
     if (text.includes('/@')) {
       el.textContent = text.replaceAll(
         /from\s+["'](\/[@\w].*?)["']/g,
-        (_match: string, p: string) => `from "${VITE_DEV_ORIGIN}${p}"`,
+        (_match: string, p: string) => `from "${viteOrigin}${p}"`,
       );
     }
   });
@@ -72,7 +72,7 @@ async function rewriteViteAssetUrls(html: string): Promise<string> {
 var O=globalThis.Worker;
 globalThis.Worker=function(u,o){
 var h=typeof u==='string'?u:u instanceof URL?u.href:'';
-if(h.startsWith('${VITE_DEV_ORIGIN}')){
+if(h.startsWith('${viteOrigin}')){
 var b=new Blob(['import "'+h+'";'],{type:'application/javascript'});
 return new O(URL.createObjectURL(b),Object.assign({},o,{type:'module'}));
 }return new O(u,o)};
@@ -86,11 +86,27 @@ globalThis.Worker.prototype=O.prototype;
   return document.toString();
 }
 
+async function resolveViteDevOrigin(): Promise<string> {
+  for (const origin of VITE_DEV_ORIGIN_CANDIDATES) {
+    try {
+      const res = await fetch(origin, { cache: 'no-store' });
+      if (res.ok) return origin;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(
+    `Unable to reach a local Vite dev server. Tried: ${VITE_DEV_ORIGIN_CANDIDATES.join(', ')}`,
+  );
+}
+
 async function getTemplate(isMobile: boolean): Promise<string> {
   if (isDev) {
-    const res = await fetch(VITE_DEV_ORIGIN);
+    const viteOrigin = await resolveViteDevOrigin();
+    const res = await fetch(viteOrigin, { cache: 'no-store' });
     const html = await res.text();
-    return rewriteViteAssetUrls(html);
+    return rewriteViteAssetUrls(html, viteOrigin);
   }
 
   const { desktopHtmlTemplate, mobileHtmlTemplate } = await import('./spaHtmlTemplates');
