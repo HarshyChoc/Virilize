@@ -9,7 +9,9 @@ import { z } from 'zod';
 import { type ToolCallContent } from '@/libs/mcp';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase, telemetry } from '@/libs/trpc/lambda/middleware';
+import { AgentCredentialService } from '@/server/services/agentCredential';
 import { FileService } from '@/server/services/file';
+import { GoogleConnectorService } from '@/server/services/googleConnectors';
 import { mcpService } from '@/server/services/mcp';
 import { processContentBlocks } from '@/server/services/mcp/contentProcessor';
 
@@ -124,6 +126,7 @@ export const mcpRouter = router({
   callTool: mcpProcedure
     .input(
       z.object({
+        agentId: z.string().optional(),
         args: z.any(), // Arguments for the tool call
         meta: metaSchema, // Optional metadata for reporting
         params: mcpClientParamsSchema, // Use the unified schema for client params
@@ -146,10 +149,30 @@ export const mcpRouter = router({
           return processContentBlocks(blocks, ctx.fileService);
         };
 
+        let finalParams = input.params;
+        const googleConnectorService = new GoogleConnectorService();
+
+        if (input.agentId && googleConnectorService.isGoogleConnectorByUrl(input.params)) {
+          const credService = new AgentCredentialService(ctx.serverDB, ctx.userId);
+          const credential = await credService.getValidGoogleCredential(input.agentId);
+
+          if (!credential) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message:
+                'This agent has no Google account connected. Connect one in Agent Settings > Connected Accounts.',
+            });
+          }
+
+          finalParams = googleConnectorService.injectCredentials(input.params, {
+            google: credential,
+          }) as typeof input.params;
+        }
+
         // Pass the validated params, toolName, args, and bound processContentBlocks to the service
         result = await mcpService.callTool({
           argsStr: input.args,
-          clientParams: input.params,
+          clientParams: finalParams,
           processContentBlocks: boundProcessContentBlocks,
           toolName: input.toolName,
         });

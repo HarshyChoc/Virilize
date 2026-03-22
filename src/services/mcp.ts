@@ -11,6 +11,7 @@ import superjson from 'superjson';
 
 import { type MCPToolCallResult } from '@/libs/mcp';
 import { toolsClient } from '@/libs/trpc/client';
+import { getAgentStoreState } from '@/store/agent';
 import { ensureElectronIpc } from '@/utils/electron/ipc';
 
 import { discoverService } from './discover';
@@ -103,6 +104,7 @@ class MCPService {
     };
 
     const data = {
+      agentId: getAgentStoreState().activeAgentId,
       // For desktop IPC, always pass a record/object for tool "arguments"
       // (IPC layer will superjson serialize the whole payload).
       args: isDesktop && isStdio ? (safeParseJSON(args) ?? {}) : args,
