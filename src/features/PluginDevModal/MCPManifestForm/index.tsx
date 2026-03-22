@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 import KeyValueEditor from '@/components/KeyValueEditor';
 import MCPStdioCommandInput from '@/components/MCPStdioCommandInput';
-import ErrorDetails from '@/features/MCP/MCPInstallProgress/InstallError/ErrorDetails';
 import { useToolStore } from '@/store/tool';
 import { mcpStoreSelectors, pluginSelectors } from '@/store/tool/selectors';
 import { type MCPErrorInfoMetadata } from '@/types/plugins';
@@ -296,7 +295,7 @@ const MCPManifestForm = ({ form, isEditMode }: MCPManifestFormProps) => {
             <Alert
               closable
               showIcon
-              extra={errorMetadata ? <ErrorDetails errorInfo={errorMetadata} /> : undefined}
+              description={errorMetadata?.errorLog}
               title={connectionError || testState.error}
               type="error"
               onClose={() => {

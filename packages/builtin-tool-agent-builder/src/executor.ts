@@ -9,7 +9,6 @@ import type { BuiltinToolContext, BuiltinToolResult } from '@lobechat/types';
 import { BaseExecutor } from '@lobechat/types';
 
 import { agentService } from '@/services/agent';
-import { discoverService } from '@/services/discover';
 
 import type {
   GetAvailableModelsParams,
@@ -19,6 +18,11 @@ import type {
   UpdatePromptParams,
 } from './types';
 import { AgentBuilderApiName, AgentBuilderIdentifier } from './types';
+
+const discoverService = {
+  getAssistantList: async () => ({ items: [], totalCount: 0 }),
+  getMcpList: async () => ({ items: [], totalCount: 0 }),
+};
 
 const runtime = new AgentManagerRuntime({
   agentService,

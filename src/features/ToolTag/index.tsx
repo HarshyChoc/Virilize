@@ -9,7 +9,6 @@ import { memo, useMemo } from 'react';
 
 import PluginAvatar from '@/components/Plugins/PluginAvatar';
 import { useIsDark } from '@/hooks/useIsDark';
-import { useDiscoverStore } from '@/store/discover';
 import { serverConfigSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useToolStore } from '@/store/tool';
 import {
@@ -72,9 +71,6 @@ const ToolTag = memo<ToolTagProps>(({ identifier, variant = 'default' }) => {
   const allKlavisServers = useToolStore(klavisStoreSelectors.getServers, isEqual);
   const isKlavisEnabledInEnv = useServerConfigStore(serverConfigSelectors.enableKlavis);
 
-  // Check if plugin is installed
-  const isInstalled = useToolStore(pluginSelectors.isPluginInstalled(identifier));
-
   // Try to find in local lists first (including Klavis)
   const localMeta = useMemo(() => {
     // Check if it's a Klavis server type
@@ -115,22 +111,14 @@ const ToolTag = memo<ToolTagProps>(({ identifier, variant = 'default' }) => {
     return null;
   }, [identifier, builtinList, installedPluginList, isKlavisEnabledInEnv, allKlavisServers]);
 
-  // Fetch from remote if not found locally
-  const usePluginDetail = useDiscoverStore((s) => s.usePluginDetail);
-  const { data: remoteData, isLoading } = usePluginDetail({
-    identifier: !localMeta && !isInstalled ? identifier : undefined,
-    withManifest: false,
-  });
-
   // Determine final metadata
   const meta = localMeta || {
-    avatar: remoteData?.avatar,
     isInstalled: false,
-    title: remoteData?.title || identifier,
+    title: identifier,
     type: 'plugin' as const,
   };
 
-  const displayTitle = isLoading ? 'Loading...' : meta.title;
+  const displayTitle = meta.title;
 
   // Render icon based on type
   const renderIcon = () => {

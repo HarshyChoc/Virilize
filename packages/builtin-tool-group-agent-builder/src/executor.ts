@@ -14,7 +14,6 @@ import type { BuiltinToolContext, BuiltinToolResult } from '@lobechat/types';
 import { BaseExecutor } from '@lobechat/types';
 
 import { agentService } from '@/services/agent';
-import { discoverService } from '@/services/discover';
 
 import { GroupAgentBuilderExecutionRuntime } from './ExecutionRuntime';
 import type {
@@ -30,6 +29,11 @@ import type {
   UpdateGroupPromptParams,
 } from './types';
 import { GroupAgentBuilderApiName, GroupAgentBuilderIdentifier } from './types';
+
+const discoverService = {
+  getAssistantList: async () => ({ items: [], totalCount: 0 }),
+  getMcpList: async () => ({ items: [], totalCount: 0 }),
+};
 
 const agentManagerRuntime = new AgentManagerRuntime({
   agentService,

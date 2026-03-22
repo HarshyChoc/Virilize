@@ -3,7 +3,7 @@
  * Provides title and icon information based on route path
  */
 import { type LucideIcon } from 'lucide-react';
-import { Circle, Home, MessageSquare, Rocket, ShapesIcon, Users } from 'lucide-react';
+import { Circle, Home, MessageSquare, Rocket, Users } from 'lucide-react';
 
 import { getRouteById } from '@/config/routes';
 
@@ -24,8 +24,6 @@ interface RoutePattern {
   useDynamicTitle?: boolean;
 }
 
-// Get shared icons
-const communityIcon = getRouteById('community')?.icon;
 const resourceIcon = getRouteById('resource')?.icon;
 const memoryIcon = getRouteById('memory')?.icon;
 const imageIcon = getRouteById('image')?.icon;
@@ -72,33 +70,6 @@ const routePatterns: RoutePattern[] = [
     icon: Users,
     test: (p) => p === '/group',
     titleKey: 'navigation.group',
-  },
-
-  // Community/Discover routes
-  {
-    icon: ShapesIcon,
-    test: (p) => p.startsWith('/community/agent'),
-    titleKey: 'navigation.discoverAssistants',
-  },
-  {
-    icon: communityIcon,
-    test: (p) => p.startsWith('/community/model'),
-    titleKey: 'navigation.discoverModels',
-  },
-  {
-    icon: communityIcon,
-    test: (p) => p.startsWith('/community/provider'),
-    titleKey: 'navigation.discoverProviders',
-  },
-  {
-    icon: communityIcon,
-    test: (p) => p.startsWith('/community/mcp'),
-    titleKey: 'navigation.discoverMcp',
-  },
-  {
-    icon: communityIcon,
-    test: (p) => p.startsWith('/community'),
-    titleKey: 'navigation.discover',
   },
 
   // Resource/Knowledge routes

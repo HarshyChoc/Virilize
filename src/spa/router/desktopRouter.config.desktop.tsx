@@ -15,23 +15,6 @@ import DesktopChatLayout from '@/routes/(main)/agent/_layout';
 import AgentChannelPage from '@/routes/(main)/agent/channel';
 import AgentCronDetailPage from '@/routes/(main)/agent/cron/[cronId]';
 import AgentProfilePage from '@/routes/(main)/agent/profile';
-import CommunityLayout from '@/routes/(main)/community/_layout';
-import CommunityDetailLayout from '@/routes/(main)/community/(detail)/_layout';
-import CommunityDetailAgentPage from '@/routes/(main)/community/(detail)/agent';
-import CommunityDetailGroupAgentPage from '@/routes/(main)/community/(detail)/group_agent';
-import CommunityDetailMcpPage from '@/routes/(main)/community/(detail)/mcp';
-import CommunityDetailModelPage from '@/routes/(main)/community/(detail)/model';
-import CommunityDetailProviderPage from '@/routes/(main)/community/(detail)/provider';
-import CommunityDetailUserPage from '@/routes/(main)/community/(detail)/user';
-import CommunityListLayout from '@/routes/(main)/community/(list)/_layout';
-import CommunityListHomePage from '@/routes/(main)/community/(list)/(home)';
-import CommunityListAgentPage from '@/routes/(main)/community/(list)/agent';
-import CommunityListAgentLayout from '@/routes/(main)/community/(list)/agent/_layout';
-import CommunityListMcpPage from '@/routes/(main)/community/(list)/mcp';
-import CommunityListMcpLayout from '@/routes/(main)/community/(list)/mcp/_layout';
-import CommunityListModelPage from '@/routes/(main)/community/(list)/model';
-import CommunityListModelLayout from '@/routes/(main)/community/(list)/model/_layout';
-import CommunityListProviderPage from '@/routes/(main)/community/(list)/provider';
 import EvalOverviewPage from '@/routes/(main)/eval';
 import EvalLayout from '@/routes/(main)/eval/_layout';
 import EvalHomeLayout from '@/routes/(main)/eval/(home)/_layout';
@@ -132,89 +115,6 @@ export const desktopRoutes: RouteObject[] = [
           },
         ],
         path: 'group',
-      },
-
-      // Discover routes with nested structure
-      {
-        children: [
-          // List routes (with ListLayout)
-          {
-            children: [
-              {
-                children: [
-                  {
-                    element: <CommunityListAgentPage />,
-                    index: true,
-                  },
-                ],
-                element: <CommunityListAgentLayout />,
-                path: 'agent',
-              },
-              {
-                children: [
-                  {
-                    element: <CommunityListModelPage />,
-                    index: true,
-                  },
-                ],
-                element: <CommunityListModelLayout />,
-                path: 'model',
-              },
-              {
-                element: <CommunityListProviderPage />,
-                path: 'provider',
-              },
-              {
-                children: [
-                  {
-                    element: <CommunityListMcpPage />,
-                    index: true,
-                  },
-                ],
-                element: <CommunityListMcpLayout />,
-                path: 'mcp',
-              },
-              {
-                element: <CommunityListHomePage />,
-                index: true,
-              },
-            ],
-            element: <CommunityListLayout />,
-          },
-          // Detail routes (with DetailLayout)
-          {
-            children: [
-              {
-                element: <CommunityDetailAgentPage />,
-                path: 'agent/:slug',
-              },
-              {
-                element: <CommunityDetailGroupAgentPage />,
-                path: 'group_agent/:slug',
-              },
-              {
-                element: <CommunityDetailModelPage />,
-                path: 'model/:slug',
-              },
-              {
-                element: <CommunityDetailProviderPage />,
-                path: 'provider/:slug',
-              },
-              {
-                element: <CommunityDetailMcpPage />,
-                path: 'mcp/:slug',
-              },
-              {
-                element: <CommunityDetailUserPage />,
-                path: 'user/:slug',
-              },
-            ],
-            element: <CommunityDetailLayout />,
-          },
-        ],
-        element: <CommunityLayout />,
-        errorElement: <ErrorBoundary resetPath="/community" />,
-        path: 'community',
       },
 
       // Resource routes

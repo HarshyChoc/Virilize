@@ -5,7 +5,6 @@ import {
 } from '@lobehub/market-sdk';
 
 import { lambdaClient } from '@/libs/trpc/client';
-import { discoverService } from '@/services/discover';
 import {
   type AgentForkRequest,
   type AgentForkResponse,
@@ -219,9 +218,14 @@ export class MarketApiService {
     q?: string;
     sort?: SkillSorts;
   }) {
-    await discoverService.safeInjectMPToken();
-
-    return lambdaClient.market.skill.getSkillList.query(params);
+    void params;
+    return {
+      currentPage: 1,
+      items: [],
+      pageSize: 20,
+      totalCount: 0,
+      totalPages: 0,
+    } as any;
   }
 
   /**

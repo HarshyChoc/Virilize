@@ -9,8 +9,6 @@ export const config = {
     '/(api|trpc|webapi)(.*)',
     // include the /
     '/',
-    '/community',
-    '/community(.*)',
     '/labs',
     '/eval',
     '/eval(.*)',

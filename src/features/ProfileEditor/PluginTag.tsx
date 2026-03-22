@@ -5,13 +5,12 @@ import { KLAVIS_SERVER_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
 import { Avatar, Icon, Tag } from '@lobehub/ui';
 import { createStaticStyles, cssVar } from 'antd-style';
 import isEqual from 'fast-deep-equal';
-import { AlertCircle, Loader2, X } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import React, { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import PluginAvatar from '@/components/Plugins/PluginAvatar';
 import { useIsDark } from '@/hooks/useIsDark';
-import { useDiscoverStore } from '@/store/discover';
 import { serverConfigSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useToolStore } from '@/store/tool';
 import {
@@ -114,9 +113,6 @@ const PluginTag = memo<PluginTagProps>(
     const allLobehubSkillServers = useToolStore(lobehubSkillStoreSelectors.getServers, isEqual);
     const isLobehubSkillEnabled = useServerConfigStore(serverConfigSelectors.enableLobehubSkill);
 
-    // Check if plugin is installed
-    const isInstalled = useToolStore(pluginSelectors.isPluginInstalled(identifier));
-
     // Try to find in local lists first (including Klavis and LobehubSkill)
     const localMeta = useMemo(() => {
       // Check if it's a Klavis server type
@@ -189,21 +185,14 @@ const PluginTag = memo<PluginTagProps>(
       allKlavisServers,
       isLobehubSkillEnabled,
       allLobehubSkillServers,
+      useAllMetaList,
     ]);
-
-    // Fetch from remote if not found locally
-    const usePluginDetail = useDiscoverStore((s) => s.usePluginDetail);
-    const { data: remoteData, isLoading } = usePluginDetail({
-      identifier: !localMeta && !isInstalled ? identifier : undefined,
-      withManifest: false,
-    });
 
     // Determine final metadata
     const meta = localMeta || {
       availableInWeb: true,
-      avatar: remoteData?.avatar,
       isInstalled: false,
-      title: remoteData?.title || identifier,
+      title: identifier,
       type: 'plugin' as const,
     };
 
@@ -214,10 +203,6 @@ const PluginTag = memo<PluginTagProps>(
     // Render icon based on type
     const renderIcon = () => {
       // Show loading spinner when loading
-      if (isLoading) {
-        return <Loader2 className={styles.loadingIcon} size={14} />;
-      }
-
       // Show warning icon when not installed
       if (!meta.isInstalled) {
         return <AlertCircle className={styles.warningIcon} size={14} />;
@@ -253,14 +238,13 @@ const PluginTag = memo<PluginTagProps>(
         text += ` (${t('tools.desktopOnly', { defaultValue: 'Desktop Only' })})`;
       }
       // Don't show "Not Installed" when loading
-      if (!meta.isInstalled && !isLoading) {
+      if (!meta.isInstalled) {
         text += ` (${t('tools.notInstalled', { defaultValue: 'Not Installed' })})`;
       }
       return text;
     };
 
-    // Only show error state when not installed and not loading
-    const showErrorState = !meta.isInstalled && !isLoading;
+    const showErrorState = !meta.isInstalled;
 
     return (
       <Tag

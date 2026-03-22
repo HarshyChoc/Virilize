@@ -5,7 +5,6 @@ import {
   type CustomPluginMetadata,
 } from '@lobechat/types';
 import { isLocalOrPrivateUrl, safeParseJSON } from '@lobechat/utils';
-import { type PluginManifest } from '@lobehub/market-sdk';
 import { type CallReportRequest } from '@lobehub/market-types';
 import superjson from 'superjson';
 
@@ -13,8 +12,6 @@ import { type MCPToolCallResult } from '@/libs/mcp';
 import { toolsClient } from '@/libs/trpc/client';
 import { getAgentStoreState } from '@/store/agent';
 import { ensureElectronIpc } from '@/utils/electron/ipc';
-
-import { discoverService } from './discover';
 
 /**
  * Calculate byte size of object
@@ -36,8 +33,6 @@ class MCPService {
     payload: ChatToolPayload,
     { signal, topicId }: { signal?: AbortSignal; topicId?: string },
   ) {
-    await discoverService.safeInjectMPToken();
-
     const { pluginSelectors } = await import('@/store/tool/selectors');
     const { getToolStoreState } = await import('@/store/tool/store');
 
@@ -194,9 +189,7 @@ class MCPService {
         };
 
         // Asynchronously report without affecting main flow
-        discoverService.reportPluginCall(reportData).catch((reportError) => {
-          console.warn('Failed to report MCP tool call:', reportError);
-        });
+        void reportData;
       }
     }
   }
@@ -255,10 +248,7 @@ class MCPService {
    * @param signal AbortSignal for canceling request
    * @returns Installation check result
    */
-  async checkInstallation(
-    manifest: PluginManifest,
-    _signal?: AbortSignal,
-  ): Promise<CheckMcpInstallResult> {
+  async checkInstallation(manifest: any, _signal?: AbortSignal): Promise<CheckMcpInstallResult> {
     void _signal;
     // Pass all deployment options to main process for checking
     // Note: IPC doesn't support AbortSignal yet

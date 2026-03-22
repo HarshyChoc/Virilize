@@ -8,7 +8,6 @@ import color from './color';
 import common from './common';
 import components from './components';
 import desktopOnboarding from './desktop-onboarding';
-import discover from './discover';
 import editor from './editor';
 import electron from './electron';
 import error from './error';
@@ -53,7 +52,6 @@ const resources = {
   common,
   components,
   'desktop-onboarding': desktopOnboarding,
-  discover,
   editor,
   'eval': eval_,
   electron,

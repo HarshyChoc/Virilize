@@ -1,6 +1,5 @@
 import { agentPlugin } from './agentPlugin';
 import { agentTopicPlugin } from './agentTopicPlugin';
-import { communityPlugin } from './communityPlugin';
 import { groupPlugin } from './groupPlugin';
 import { groupTopicPlugin } from './groupTopicPlugin';
 import { homePlugin } from './homePlugin';
@@ -18,7 +17,6 @@ export const loadAllRecentlyViewedPlugins = () => {
   pluginRegistry.register([
     agentPlugin,
     agentTopicPlugin,
-    communityPlugin,
     groupPlugin,
     groupTopicPlugin,
     homePlugin,

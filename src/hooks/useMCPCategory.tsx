@@ -18,118 +18,116 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { McpCategory } from '@/types/discover';
 
 export const useCategory = () => {
-  const { t } = useTranslation('discover');
   return useMemo(
     () => [
       {
         icon: CompassIcon,
         key: McpCategory.Discover,
-        label: t('mcp.categories.discover.name'),
-        title: t('mcp.categories.discover.description'),
+        label: 'Discover',
+        title: 'Recommended MCP servers',
       },
       {
         icon: LayoutPanelTopIcon,
         key: McpCategory.All,
-        label: t('mcp.categories.all.name'),
-        title: t('mcp.categories.all.description'),
+        label: 'All',
+        title: 'All MCP servers',
       },
       {
         icon: CodeIcon,
         key: McpCategory.Developer,
-        label: t('mcp.categories.developer.name'),
-        title: t('mcp.categories.developer.description'),
+        label: 'Developer Tools',
+        title: 'Developer-related tools and services',
       },
       {
         icon: CheckSquareIcon,
         key: McpCategory.Productivity,
-        label: t('mcp.categories.productivity.name'),
-        title: t('mcp.categories.productivity.description'),
+        label: 'Productivity',
+        title: 'Productivity and workflow tools',
       },
       {
         icon: HammerIcon,
         key: McpCategory.Tools,
-        label: t('mcp.categories.tools.name'),
-        title: t('mcp.categories.tools.description'),
+        label: 'Utility Tools',
+        title: 'General utility tools',
       },
       {
         icon: SearchIcon,
         key: McpCategory.WebSearch,
-        label: t('mcp.categories.web-search.name'),
-        title: t('mcp.categories.web-search.description'),
+        label: 'Web Search',
+        title: 'Search and crawling tools',
       },
       {
         icon: ImageIcon,
         key: McpCategory.MediaGenerate,
-        label: t('mcp.categories.media-generate.name'),
-        title: t('mcp.categories.media-generate.description'),
+        label: 'Media Generation',
+        title: 'Image and media generation tools',
       },
       {
         icon: BriefcaseIcon,
         key: McpCategory.Business,
-        label: t('mcp.categories.business.name'),
-        title: t('mcp.categories.business.description'),
+        label: 'Business Services',
+        title: 'Business and enterprise services',
       },
       {
         icon: GraduationCapIcon,
         key: McpCategory.ScienceEducation,
-        label: t('mcp.categories.science-education.name'),
-        title: t('mcp.categories.science-education.description'),
+        label: 'Science & Education',
+        title: 'Science and education tools',
       },
       {
         icon: DollarSignIcon,
         key: McpCategory.StocksFinance,
-        label: t('mcp.categories.stocks-finance.name'),
-        title: t('mcp.categories.stocks-finance.description'),
+        label: 'Stocks & Finance',
+        title: 'Stocks and finance tools',
       },
       {
         icon: NewspaperIcon,
         key: McpCategory.News,
-        label: t('mcp.categories.news.name'),
-        title: t('mcp.categories.news.description'),
+        label: 'News',
+        title: 'News and current-events tools',
       },
       {
         icon: UsersIcon,
         key: McpCategory.Social,
-        label: t('mcp.categories.social.name'),
-        title: t('mcp.categories.social.description'),
+        label: 'Social Media',
+        title: 'Social platforms and communication tools',
       },
       {
         icon: GamepadIcon,
         key: McpCategory.GamingEntertainment,
-        label: t('mcp.categories.gaming-entertainment.name'),
-        title: t('mcp.categories.gaming-entertainment.description'),
+        label: 'Gaming & Entertainment',
+        title: 'Gaming and entertainment tools',
       },
       {
         icon: CoffeeIcon,
         key: McpCategory.Lifestyle,
-        label: t('mcp.categories.lifestyle.name'),
-        title: t('mcp.categories.lifestyle.description'),
+        label: 'Lifestyle',
+        title: 'Lifestyle tools and services',
       },
       {
         icon: LeafIcon,
         key: McpCategory.HealthWellness,
-        label: t('mcp.categories.health-wellness.name'),
-        title: t('mcp.categories.health-wellness.description'),
+        label: 'Health & Wellness',
+        title: 'Health and wellness services',
       },
       {
         icon: MapIcon,
         key: McpCategory.TravelTransport,
-        label: t('mcp.categories.travel-transport.name'),
-        title: t('mcp.categories.travel-transport.description'),
+        label: 'Travel & Transport',
+        title: 'Travel and transport tools',
       },
       {
         icon: CloudIcon,
         key: McpCategory.Weather,
-        label: t('mcp.categories.weather.name'),
-        title: t('mcp.categories.weather.description'),
+        label: 'Weather',
+        title: 'Weather services',
       },
     ],
-    [t],
+    [],
   );
 };
 

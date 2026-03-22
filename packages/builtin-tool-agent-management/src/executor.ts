@@ -14,7 +14,6 @@ import {
 } from '@lobechat/types';
 
 import { agentService } from '@/services/agent';
-import { discoverService } from '@/services/discover';
 import { useAgentStore } from '@/store/agent';
 import { useChatStore } from '@/store/chat';
 import { dbMessageSelectors } from '@/store/chat/slices/message/selectors';
@@ -30,6 +29,11 @@ import {
   type SearchAgentParams,
   type UpdateAgentParams,
 } from './types';
+
+const discoverService = {
+  getAssistantList: async () => ({ items: [], totalCount: 0 }),
+  getMcpList: async () => ({ items: [], totalCount: 0 }),
+};
 
 const runtime = new AgentManagerRuntime({
   agentService,

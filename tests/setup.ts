@@ -11,7 +11,6 @@ import { vi } from 'vitest';
 
 import chat from '@/locales/default/chat';
 import common from '@/locales/default/common';
-import discover from '@/locales/default/discover';
 import home from '@/locales/default/home';
 import oauth from '@/locales/default/oauth';
 
@@ -59,12 +58,11 @@ await i18n.init({
   fallbackLng: 'zh-CN',
   interpolation: { escapeValue: false },
   lng: 'zh-CN',
-  ns: ['common', 'chat', 'discover', 'home', 'oauth'],
+  ns: ['common', 'chat', 'home', 'oauth'],
   resources: {
     'zh-CN': {
       chat,
       common,
-      discover,
       home,
       oauth,
     },
