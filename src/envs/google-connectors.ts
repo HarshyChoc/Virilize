@@ -6,15 +6,21 @@ export const getGoogleConnectorsConfig = () => {
     clientPrefix: 'NEXT_PUBLIC_',
     client: {},
     runtimeEnv: {
+      GOOGLE_CONNECTOR_DOCS_URL: process.env.GOOGLE_CONNECTOR_DOCS_URL,
       GOOGLE_CONNECTOR_CALENDAR_URL: process.env.GOOGLE_CONNECTOR_CALENDAR_URL,
       GOOGLE_CONNECTOR_DRIVE_URL: process.env.GOOGLE_CONNECTOR_DRIVE_URL,
       GOOGLE_CONNECTOR_GMAIL_URL: process.env.GOOGLE_CONNECTOR_GMAIL_URL,
+      GOOGLE_CONNECTOR_SHEETS_URL: process.env.GOOGLE_CONNECTOR_SHEETS_URL,
+      GOOGLE_CONNECTOR_SLIDES_URL: process.env.GOOGLE_CONNECTOR_SLIDES_URL,
       GOOGLE_CONNECTOR_YOUTUBE_URL: process.env.GOOGLE_CONNECTOR_YOUTUBE_URL,
     },
     server: {
+      GOOGLE_CONNECTOR_DOCS_URL: z.string().optional(),
       GOOGLE_CONNECTOR_CALENDAR_URL: z.string().optional(),
       GOOGLE_CONNECTOR_DRIVE_URL: z.string().optional(),
       GOOGLE_CONNECTOR_GMAIL_URL: z.string().optional(),
+      GOOGLE_CONNECTOR_SHEETS_URL: z.string().optional(),
+      GOOGLE_CONNECTOR_SLIDES_URL: z.string().optional(),
       GOOGLE_CONNECTOR_YOUTUBE_URL: z.string().optional(),
     },
   });

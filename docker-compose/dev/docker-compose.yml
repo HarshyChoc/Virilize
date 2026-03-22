@@ -145,6 +145,42 @@ services:
     networks:
       - lobe-network
 
+  google-connector-docs:
+    build:
+      context: ../../../VirilizeConnectors/mcp_servers/google_docs
+    container_name: lobe-google-connector-docs
+    ports:
+      - '5004:5004'
+    environment:
+      - PORT=5004
+    restart: always
+    networks:
+      - lobe-network
+
+  google-connector-sheets:
+    build:
+      context: ../../../VirilizeConnectors/mcp_servers/google_sheets
+    container_name: lobe-google-connector-sheets
+    ports:
+      - '5005:5005'
+    environment:
+      - PORT=5005
+    restart: always
+    networks:
+      - lobe-network
+
+  google-connector-slides:
+    build:
+      context: ../../../VirilizeConnectors/mcp_servers/google_slides
+    container_name: lobe-google-connector-slides
+    ports:
+      - '5006:5006'
+    environment:
+      - PORT=5006
+    restart: always
+    networks:
+      - lobe-network
+
   google-connector-youtube:
     build:
       context: ../../../VirilizeConnectors/mcp_servers/youtube
