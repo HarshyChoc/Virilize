@@ -10,6 +10,7 @@ import {
 } from '@/server/utils/truncateToolResult';
 
 import { DiscoverService } from '../discover';
+import { type GoogleConnectorService } from '../googleConnectors';
 import { type MCPService } from '../mcp';
 import { type PluginGatewayService } from '../pluginGateway';
 import { type BuiltinToolsExecutor } from './builtin';
@@ -23,12 +24,14 @@ const log = debug('lobe-server:tool-execution-service');
 
 interface ToolExecutionServiceDeps {
   builtinToolsExecutor: BuiltinToolsExecutor;
+  googleConnectorService: GoogleConnectorService;
   mcpService: MCPService;
   pluginGatewayService: PluginGatewayService;
 }
 
 export class ToolExecutionService {
   private builtinToolsExecutor: BuiltinToolsExecutor;
+  private googleConnectorService: GoogleConnectorService;
   private mcpService: MCPService;
   private pluginGatewayService: PluginGatewayService;
 
@@ -36,8 +39,10 @@ export class ToolExecutionService {
     mcpService,
     pluginGatewayService,
     builtinToolsExecutor,
+    googleConnectorService,
   }: ToolExecutionServiceDeps) {
     this.builtinToolsExecutor = builtinToolsExecutor;
+    this.googleConnectorService = googleConnectorService;
     this.mcpService = mcpService;
     this.pluginGatewayService = pluginGatewayService;
   }
@@ -121,6 +126,37 @@ export class ToolExecutionService {
     const { identifier, apiName, arguments: args } = payload;
 
     log('Executing MCP tool: %s:%s', identifier, apiName);
+
+    // Check if this is a Google connector — inject credentials
+    if (this.googleConnectorService.isGoogleConnector(identifier)) {
+      try {
+        const enrichedParams = this.googleConnectorService.buildConnectorParams(
+          identifier,
+          context.agentCredentials ?? {},
+        );
+        const result = await this.mcpService.callTool({
+          argsStr: args,
+          clientParams: enrichedParams,
+          toolName: apiName,
+        });
+        log('Google connector tool execution successful for: %s:%s', identifier, apiName);
+        return {
+          content: typeof result === 'string' ? result : JSON.stringify(result),
+          state: typeof result === 'object' ? result : undefined,
+          success: true,
+        };
+      } catch (error) {
+        log('Google connector tool execution failed for %s:%s: %O', identifier, apiName, error);
+        return {
+          content: (error as Error).message,
+          error: {
+            code: 'GOOGLE_CONNECTOR_ERROR',
+            message: (error as Error).message,
+          },
+          success: false,
+        };
+      }
+    }
 
     // Get the manifest from context
     const manifest = context.toolManifestMap[identifier];

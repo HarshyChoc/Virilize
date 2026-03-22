@@ -14,6 +14,7 @@ import { AgentRuntimeCoordinator, createStreamEventManager } from '@/server/modu
 import { type RuntimeExecutorContext } from '@/server/modules/AgentRuntime/RuntimeExecutors';
 import { createRuntimeExecutors } from '@/server/modules/AgentRuntime/RuntimeExecutors';
 import { type IStreamEventManager } from '@/server/modules/AgentRuntime/types';
+import { GoogleConnectorService } from '@/server/services/googleConnectors';
 import { mcpService } from '@/server/services/mcp';
 import { PluginGatewayService } from '@/server/services/pluginGateway';
 import { QueueService } from '@/server/services/queue';
@@ -160,9 +161,11 @@ export class AgentRuntimeService {
     // Initialize ToolExecutionService with dependencies
     const pluginGatewayService = new PluginGatewayService();
     const builtinToolsExecutor = new BuiltinToolsExecutor(db, userId);
+    const googleConnectorService = new GoogleConnectorService();
 
     this.toolExecutionService = new ToolExecutionService({
       builtinToolsExecutor,
+      googleConnectorService,
       mcpService,
       pluginGatewayService,
     });
