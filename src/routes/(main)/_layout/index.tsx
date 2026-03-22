@@ -19,7 +19,6 @@ import HotkeyHelperPanel from '@/features/HotkeyHelperPanel';
 import NavPanel from '@/features/NavPanel';
 import { useFeedbackModal } from '@/hooks/useFeedbackModal';
 import { usePlatform } from '@/hooks/usePlatform';
-import { MarketAuthProvider } from '@/layout/AuthProvider/MarketAuth';
 import CmdkLazy from '@/layout/GlobalProvider/CmdkLazy';
 import dynamic from '@/libs/next/dynamic';
 import { DndContextWrapper } from '@/routes/(main)/resource/features/DndContextWrapper';
@@ -72,14 +71,12 @@ const Layout: FC = () => {
         >
           <NavPanel />
           <DesktopLayoutContainer>
-            <MarketAuthProvider isDesktop={isDesktop}>
-              <DesktopHomeLayout>
-                <DesktopHome />
-              </DesktopHomeLayout>
-              <Suspense fallback={<Loading debugId="DesktopMainLayout > Outlet" />}>
-                <Outlet />
-              </Suspense>
-            </MarketAuthProvider>
+            <DesktopHomeLayout>
+              <DesktopHome />
+            </DesktopHomeLayout>
+            <Suspense fallback={<Loading debugId="DesktopMainLayout > Outlet" />}>
+              <Outlet />
+            </Suspense>
           </DesktopLayoutContainer>
         </Flexbox>
       </DndContextWrapper>

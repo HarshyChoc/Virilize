@@ -18,7 +18,6 @@ import KlavisSkillIcon, {
 import LobehubSkillIcon from '@/features/ChatInput/ActionBar/Tools/LobehubSkillIcon';
 import LobehubSkillServerItem from '@/features/ChatInput/ActionBar/Tools/LobehubSkillServerItem';
 import ToolItem from '@/features/ChatInput/ActionBar/Tools/ToolItem';
-import { createSkillStoreModal } from '@/features/SkillStore';
 import { useCheckPluginsIsInstalled } from '@/hooks/useCheckPluginsIsInstalled';
 import { useFetchInstalledPlugins } from '@/hooks/useFetchInstalledPlugins';
 import { useAgentStore } from '@/store/agent';
@@ -72,7 +71,7 @@ const AgentTool = memo<AgentToolProps>(
     const config = useAgentStore(agentSelectors.getAgentConfigById(effectiveAgentId), isEqual);
 
     // Plugin state management
-    const plugins = config?.plugins || [];
+    const plugins = useMemo(() => config?.plugins || [], [config?.plugins]);
 
     const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
     const updateAgentChatConfigById = useAgentStore((s) => s.updateAgentChatConfigById);
@@ -202,9 +201,12 @@ const AgentTool = memo<AgentToolProps>(
     }, [plugins.length]);
 
     // 根据 identifier 获取已连接的服务器
-    const getServerByName = (identifier: string) => {
-      return allKlavisServers.find((server) => server.identifier === identifier);
-    };
+    const getServerByName = useCallback(
+      (identifier: string) => {
+        return allKlavisServers.find((server) => server.identifier === identifier);
+      },
+      [allKlavisServers],
+    );
 
     // 获取所有 Klavis 服务器类型的 identifier 集合（用于过滤 builtinList）
     const allKlavisTypeIdentifiers = useMemo(
@@ -271,7 +273,7 @@ const AgentTool = memo<AgentToolProps>(
               ),
             }))
           : [],
-      [isKlavisEnabledInEnv, allKlavisServers, effectiveAgentId],
+      [isKlavisEnabledInEnv, effectiveAgentId, getServerByName],
     );
 
     // LobeHub Skill Provider 列表项
@@ -296,7 +298,7 @@ const AgentTool = memo<AgentToolProps>(
               ),
             }))
           : [],
-      [isLobehubSkillEnabled, allLobehubSkillServers, effectiveAgentId],
+      [isLobehubSkillEnabled, effectiveAgentId],
     );
 
     // Handle plugin remove via Tag close - use byId actions
@@ -795,10 +797,6 @@ const AgentTool = memo<AgentToolProps>(
                   installedTabItems={installedTabItems}
                   onClose={() => setDropdownOpen(false)}
                   onTabChange={setActiveTab}
-                  onOpenStore={() => {
-                    setDropdownOpen(false);
-                    createSkillStoreModal();
-                  }}
                 />
               )}
               positionerProps={{

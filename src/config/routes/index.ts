@@ -1,13 +1,5 @@
 import { type LucideIcon } from 'lucide-react';
-import {
-  BrainCircuit,
-  FilePenIcon,
-  Image,
-  LibraryBigIcon,
-  Settings,
-  ShapesIcon,
-  Video,
-} from 'lucide-react';
+import { BrainCircuit, FilePenIcon, Image, LibraryBigIcon, Settings, Video } from 'lucide-react';
 
 export interface NavigationRoute {
   /** CMDK i18n key in common namespace */
@@ -35,16 +27,6 @@ export interface NavigationRoute {
  * Used by both Electron navigation and CommandMenu (CMDK)
  */
 export const NAVIGATION_ROUTES: NavigationRoute[] = [
-  {
-    cmdkKey: 'cmdk.community',
-    electronKey: 'navigation.discover',
-    icon: ShapesIcon,
-    id: 'community',
-    keywords: ['discover', 'market', 'assistant', 'model', 'provider', 'mcp'],
-    keywordsKey: 'cmdk.keywords.community',
-    path: '/community',
-    pathPrefix: '/community',
-  },
   {
     cmdkKey: 'cmdk.video',
     electronKey: 'navigation.video',
@@ -118,6 +100,4 @@ export const getRouteById = (id: string): NavigationRoute | undefined =>
  * Get navigable routes for CMDK (excludes settings which has separate handling)
  */
 export const getNavigableRoutes = (): NavigationRoute[] =>
-  NAVIGATION_ROUTES.filter((r) =>
-    ['community', 'video', 'image', 'resource', 'page', 'memory'].includes(r.id),
-  );
+  NAVIGATION_ROUTES.filter((r) => ['video', 'image', 'resource', 'page', 'memory'].includes(r.id));

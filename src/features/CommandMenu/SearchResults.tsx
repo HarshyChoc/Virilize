@@ -1,7 +1,6 @@
 import { Command } from 'cmdk';
 import dayjs from 'dayjs';
 import {
-  Bot,
   Brain,
   ChevronRight,
   FileText,
@@ -9,8 +8,6 @@ import {
   Library,
   MessageCircle,
   MessageSquare,
-  Plug,
-  Puzzle,
   Sparkles,
 } from 'lucide-react';
 import { memo } from 'react';
@@ -40,6 +37,9 @@ const SearchResults = memo<SearchResultsProps>(
   ({ isLoading, onClose, onSetTypeFilter, results, searchQuery, typeFilter }) => {
     const { t } = useTranslation('common');
     const navigate = useNavigate();
+    const visibleResults = results.filter(
+      (result) => !['communityAgent', 'mcp', 'plugin'].includes(result.type),
+    );
 
     const handleNavigate = (result: SearchResult) => {
       switch (result.type) {
@@ -96,18 +96,6 @@ const SearchResults = memo<SearchResultsProps>(
           navigate(`/page/${result.id.split('_')[1]}`);
           break;
         }
-        case 'mcp': {
-          navigate(`/community/mcp/${result.identifier}`);
-          break;
-        }
-        case 'plugin': {
-          navigate(`/community/mcp/${result.identifier}`);
-          break;
-        }
-        case 'communityAgent': {
-          navigate(`/community/agent/${result.identifier}`);
-          break;
-        }
         case 'memory': {
           navigate(`/memory/preferences?preferenceId=${result.id}`);
           break;
@@ -140,15 +128,6 @@ const SearchResults = memo<SearchResultsProps>(
         case 'page': {
           return <FileText size={16} />;
         }
-        case 'mcp': {
-          return <Puzzle size={16} />;
-        }
-        case 'plugin': {
-          return <Plug size={16} />;
-        }
-        case 'communityAgent': {
-          return <Bot size={16} />;
-        }
         case 'memory': {
           return <Brain size={16} />;
         }
@@ -177,15 +156,6 @@ const SearchResults = memo<SearchResultsProps>(
         }
         case 'page': {
           return t('cmdk.search.page');
-        }
-        case 'mcp': {
-          return t('cmdk.search.mcp');
-        }
-        case 'plugin': {
-          return t('cmdk.search.plugin');
-        }
-        case 'communityAgent': {
-          return t('cmdk.search.assistant');
         }
         case 'memory': {
           return t('cmdk.search.memory');
@@ -231,20 +201,17 @@ const SearchResults = memo<SearchResultsProps>(
       onSetTypeFilter(type);
     };
 
-    const hasResults = results.length > 0;
+    const hasResults = visibleResults.length > 0;
 
     // Group results by type
-    const messageResults = results.filter((r) => r.type === 'message');
-    const agentResults = results.filter((r) => r.type === 'agent');
-    const topicResults = results.filter((r) => r.type === 'topic');
-    const fileResults = results.filter((r) => r.type === 'file');
-    const folderResults = results.filter((r) => r.type === 'folder');
-    const pageResults = results.filter((r) => r.type === 'page');
-    const memoryResults = results.filter((r) => r.type === 'memory');
-    const mcpResults = results.filter((r) => r.type === 'mcp');
-    const pluginResults = results.filter((r) => r.type === 'plugin');
-    const knowledgeBaseResults = results.filter((r) => r.type === 'knowledgeBase');
-    const assistantResults = results.filter((r) => r.type === 'communityAgent');
+    const messageResults = visibleResults.filter((r) => r.type === 'message');
+    const agentResults = visibleResults.filter((r) => r.type === 'agent');
+    const topicResults = visibleResults.filter((r) => r.type === 'topic');
+    const fileResults = visibleResults.filter((r) => r.type === 'file');
+    const folderResults = visibleResults.filter((r) => r.type === 'folder');
+    const pageResults = visibleResults.filter((r) => r.type === 'page');
+    const memoryResults = visibleResults.filter((r) => r.type === 'memory');
+    const knowledgeBaseResults = visibleResults.filter((r) => r.type === 'knowledgeBase');
 
     // Don't render anything if no results and not loading
     if (!hasResults && !isLoading) {
@@ -377,27 +344,6 @@ const SearchResults = memo<SearchResultsProps>(
           <Command.Group forceMount>
             {knowledgeBaseResults.map((result) => renderResultItem(result))}
             {renderSearchMore('knowledgeBase', knowledgeBaseResults.length)}
-          </Command.Group>
-        )}
-
-        {mcpResults.length > 0 && (
-          <Command.Group forceMount>
-            {mcpResults.map((result) => renderResultItem(result))}
-            {renderSearchMore('mcp', mcpResults.length)}
-          </Command.Group>
-        )}
-
-        {pluginResults.length > 0 && (
-          <Command.Group forceMount>
-            {pluginResults.map((result) => renderResultItem(result))}
-            {renderSearchMore('plugin', pluginResults.length)}
-          </Command.Group>
-        )}
-
-        {assistantResults.length > 0 && (
-          <Command.Group forceMount>
-            {assistantResults.map((result) => renderResultItem(result))}
-            {renderSearchMore('communityAgent', assistantResults.length)}
           </Command.Group>
         )}
 

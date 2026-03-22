@@ -37,7 +37,7 @@ export const configRouter = router({
       serverConfig,
       serverFeatureFlags: {
         ...serverFeatureFlags,
-        showMarket: !!serverFeatureFlags.showMarket && marketEnabled,
+        showMarket: false,
       },
     };
     log(

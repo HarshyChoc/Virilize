@@ -1,7 +1,7 @@
 import { type ItemType } from '@lobehub/ui';
 import { Flexbox, Icon, SearchBar, stopPropagation, usePopoverContext } from '@lobehub/ui';
 import { createStaticStyles, cssVar } from 'antd-style';
-import { ChevronRight, ExternalLink, Settings, Store } from 'lucide-react';
+import { ExternalLink, Settings } from 'lucide-react';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -51,10 +51,9 @@ const filterItems = (items: ItemType[], keyword: string): ItemType[] => {
 
 interface PopoverContentProps {
   items: ItemType[];
-  onOpenStore: () => void;
 }
 
-const PopoverContent = memo<PopoverContentProps>(({ items, onOpenStore }) => {
+const PopoverContent = memo<PopoverContentProps>(({ items }) => {
   const { t } = useTranslation('setting');
   const navigate = useNavigate();
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -96,22 +95,7 @@ const PopoverContent = memo<PopoverContentProps>(({ items, onOpenStore }) => {
           tabIndex={0}
           onClick={() => {
             closePopover();
-            onOpenStore();
-          }}
-        >
-          <div className={toolsListStyles.itemIcon}>
-            <Icon icon={Store} size={20} />
-          </div>
-          <div className={toolsListStyles.itemContent}>{t('skillStore.title')}</div>
-          <Icon className={styles.trailingIcon} icon={ChevronRight} size={16} />
-        </div>
-        <div
-          className={toolsListStyles.item}
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            closePopover();
-            navigate('/settings/skill');
+            navigate('/settings/tool');
           }}
         >
           <div className={toolsListStyles.itemIcon}>
