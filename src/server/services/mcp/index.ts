@@ -380,7 +380,7 @@ export class MCPService {
         description:
           metadata?.description ||
           `${identifier} MCP server has ${tools.length} tools, like "${tools[0]?.name}"`,
-        title: identifier,
+        title: metadata?.name || identifier,
       },
       // TODO: temporary
       type: 'mcp' as any,

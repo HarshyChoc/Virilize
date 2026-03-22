@@ -5,6 +5,7 @@ import { PluginModel } from '@/database/models/plugin';
 import { getServerDB } from '@/database/server';
 import { authedProcedure, publicProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
+import { GoogleConnectorService } from '@/server/services/googleConnectors';
 
 const pluginProcedure = authedProcedure.use(serverDatabase).use(async (opts) => {
   const { ctx } = opts;
@@ -71,8 +72,16 @@ export const pluginRouter = router({
 
     const serverDB = await getServerDB();
     const pluginModel = new PluginModel(serverDB, ctx.userId);
+    const googleConnectorService = new GoogleConnectorService();
+    const [installedPlugins, googleConnectorPlugins] = await Promise.all([
+      pluginModel.query(),
+      googleConnectorService.getConfiguredPluginTools(),
+    ]);
 
-    return pluginModel.query();
+    return [...installedPlugins, ...googleConnectorPlugins].filter(
+      (tool, index, list) =>
+        list.findIndex((item) => item.identifier === tool.identifier) === index,
+    );
   }),
 
   removeAllPlugins: pluginProcedure.mutation(async ({ ctx }) => {

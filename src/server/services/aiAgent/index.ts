@@ -42,6 +42,7 @@ import { AgentService } from '@/server/services/agent';
 import { AgentRuntimeService } from '@/server/services/agentRuntime';
 import { type StepLifecycleCallbacks } from '@/server/services/agentRuntime/types';
 import { FileService } from '@/server/services/file';
+import { GoogleConnectorService } from '@/server/services/googleConnectors';
 import { KlavisService } from '@/server/services/klavis';
 import { MarketService } from '@/server/services/market';
 import { deviceProxy } from '@/server/services/toolExecution/deviceProxy';
@@ -158,6 +159,7 @@ export class AiAgentService {
   private readonly agentRuntimeService: AgentRuntimeService;
   private readonly marketService: MarketService;
   private readonly klavisService: KlavisService;
+  private readonly googleConnectorService: GoogleConnectorService;
 
   constructor(db: LobeChatDatabase, userId: string) {
     this.userId = userId;
@@ -171,6 +173,7 @@ export class AiAgentService {
     this.agentRuntimeService = new AgentRuntimeService(db, userId);
     this.marketService = new MarketService({ userInfo: { userId } });
     this.klavisService = new KlavisService({ db, userId });
+    this.googleConnectorService = new GoogleConnectorService();
   }
 
   /**
@@ -301,8 +304,20 @@ export class AiAgentService {
     const provider = agentConfig.provider!;
 
     // 4. Get installed plugins from database
-    const installedPlugins = await this.pluginModel.query();
-    log('execAgent: got %d installed plugins', installedPlugins.length);
+    const [databasePlugins, googleConnectorPlugins] = await Promise.all([
+      this.pluginModel.query(),
+      this.googleConnectorService.getConfiguredPluginTools(),
+    ]);
+    const installedPlugins = [...databasePlugins, ...googleConnectorPlugins].filter(
+      (tool, index, list) =>
+        list.findIndex((item) => item.identifier === tool.identifier) === index,
+    );
+    const configuredGoogleConnectorIds = googleConnectorPlugins.map((tool) => tool.identifier);
+    log(
+      'execAgent: got %d installed plugins (%d Google connectors)',
+      installedPlugins.length,
+      googleConnectorPlugins.length,
+    );
 
     // 5. Get model abilities from model-bank for function calling support check
     const { LOBE_DEFAULT_MODEL_LIST } = await import('model-bank');
@@ -376,6 +391,7 @@ export class AiAgentService {
     const hasTopicReference = /refer_topic/.test(prompt ?? '');
     const agentPlugins = [
       ...(agentConfig?.plugins ?? []),
+      ...configuredGoogleConnectorIds,
       ...(hasTopicReference ? ['lobe-topic-reference'] : []),
     ];
 
@@ -398,6 +414,7 @@ export class AiAgentService {
     // Include device tool IDs so ToolsEngine can process them via enableChecker
     const pluginIds = [
       ...(agentConfig.plugins || []),
+      ...configuredGoogleConnectorIds,
       LocalSystemManifest.identifier,
       RemoteDeviceManifest.identifier,
     ];
